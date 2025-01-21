@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 export const SummaryCards = () => {
   const { data: leadsCount, isLoading: isLoadingLeads } = useQuery({
@@ -50,7 +51,8 @@ export const SummaryCards = () => {
       return Object.entries(distribution).map(([score, count]) => ({
         score: `Score ${score}`,
         count,
-        percentage: Math.round((count / total) * 100)
+        percentage: Math.round((count / total) * 100),
+        color: score === '1' ? '#ea384c' : score === '2' ? '#F97316' : '#008f39'
       }));
     }
   });
@@ -93,7 +95,15 @@ export const SummaryCards = () => {
                   <span>{item.score}</span>
                   <span>{item.percentage}%</span>
                 </div>
-                <Progress value={item.percentage} className="h-2" />
+                <Progress 
+                  value={item.percentage} 
+                  className={cn("h-2")}
+                  indicatorClassName={cn("transition-all", {
+                    "bg-[#ea384c]": item.score === "Score 1",
+                    "bg-[#F97316]": item.score === "Score 2",
+                    "bg-[#008f39]": item.score === "Score 3"
+                  })}
+                />
               </div>
             ))
           )}

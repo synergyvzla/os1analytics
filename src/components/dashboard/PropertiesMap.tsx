@@ -55,7 +55,7 @@ const getMarkerIcon = (score: number | null) => {
   if (score === 2) {
     color = '#F97316'; // Amarillo para score 2
   } else if (score === 3) {
-    color = '#0EA5E9'; // Verde para score 3
+    color = '#008f39'; // Verde para score 3
   }
 
   return {
