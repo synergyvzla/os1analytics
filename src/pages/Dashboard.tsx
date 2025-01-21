@@ -92,6 +92,10 @@ export const Dashboard = () => {
             </CardContent>
           </Card>
 
+          <div className="flex items-baseline gap-2 text-2xl font-semibold">
+            Mostrando <span className="text-4xl text-primary">{properties?.length || 0}</span> propiedades
+          </div>
+
           <div className="mt-4">
             <PropertiesMap
               properties={properties}
