@@ -8,14 +8,15 @@ import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { useState, useMemo } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Check, Search, X } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 const mapContainerStyle = {
   width: '100%',
   height: '500px',
-  marginTop: '20px',
   borderRadius: '8px'
 };
 
@@ -53,6 +54,7 @@ export const Dashboard = () => {
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [mapZoom, setMapZoom] = useState(9);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(true);
 
   const { data: leadsCount, isLoading: isLoadingLeads } = useQuery({
     queryKey: ['propertiesCount'],
@@ -185,8 +187,8 @@ export const Dashboard = () => {
   return (
     <DashboardSidebar>
       <div className="min-h-screen bg-secondary p-6">
-        <div className="container mx-auto">
-          <h1 className="text-4xl font-inter font-semibold tracking-tight mb-8">Summary</h1>
+        <div className="container mx-auto space-y-6">
+          <h1 className="text-4xl font-inter font-semibold tracking-tight">Summary</h1>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
@@ -233,81 +235,112 @@ export const Dashboard = () => {
             </Card>
           </div>
 
-          <h2 className="text-2xl font-semibold mt-12 mb-6">Segmentación de Propiedades</h2>
+          <h2 className="text-2xl font-semibold">Segmentación de Propiedades</h2>
           
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <Card className="lg:col-span-1">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  Seleccione uno o más códigos postales:
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="px-4 pb-3">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar código postal..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-                <ScrollArea className="h-[300px] px-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="select-all"
-                        checked={selectedZips.length === availableZipCodes?.length}
-                        onCheckedChange={handleSelectAll}
-                      />
-                      <label
-                        htmlFor="select-all"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Seleccionar todos
-                      </label>
-                    </div>
-                    <Separator className="my-2" />
-                    {filteredZipCodes.map((zip) => (
-                      <div key={zip} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`zip-${zip}`}
-                          checked={selectedZips.includes(zip.toString())}
-                          onCheckedChange={() => handleZipSelect(zip.toString())}
-                        />
-                        <label
-                          htmlFor={`zip-${zip}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {zip}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-
-            <div className="lg:col-span-3">
-              <LoadScript googleMapsApiKey="AIzaSyC2q-Pl2npZHP0T33HBbZpstTJE3UDWPog">
-                <GoogleMap
-                  mapContainerStyle={mapContainerStyle}
-                  center={mapCenter}
-                  zoom={mapZoom}
-                  options={mapOptions}
-                >
-                  {markers.map((marker, index) => (
-                    <Marker
-                      key={index}
-                      position={marker.position}
-                      title={marker.title}
-                    />
-                  ))}
-                </GoogleMap>
-              </LoadScript>
+          <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Filtros de búsqueda</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-9 p-0">
+                  {isOpen ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
             </div>
+            
+            <CollapsibleContent className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Seleccione uno o más códigos postales:
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="px-4 pb-3">
+                      <div className="relative">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Buscar código postal..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-8"
+                        />
+                      </div>
+                    </div>
+                    <ScrollArea className="h-[200px] px-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="select-all"
+                            checked={selectedZips.length === availableZipCodes?.length}
+                            onCheckedChange={handleSelectAll}
+                          />
+                          <label
+                            htmlFor="select-all"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Seleccionar todos
+                          </label>
+                        </div>
+                        <Separator className="my-2" />
+                        {filteredZipCodes.map((zip) => (
+                          <div key={zip} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`zip-${zip}`}
+                              checked={selectedZips.includes(zip.toString())}
+                              onCheckedChange={() => handleZipSelect(zip.toString())}
+                            />
+                            <label
+                              htmlFor={`zip-${zip}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {zip}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Seleccione uno o más scores de techo:
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Score selector implementation will go here */}
+                    <div className="text-sm text-muted-foreground">
+                      Próximamente...
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <div className="mt-4">
+            <LoadScript googleMapsApiKey="AIzaSyC2q-Pl2npZHP0T33HBbZpstTJE3UDWPog">
+              <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={mapCenter}
+                zoom={mapZoom}
+                options={mapOptions}
+              >
+                {markers.map((marker, index) => (
+                  <Marker
+                    key={index}
+                    position={marker.position}
+                    title={marker.title}
+                  />
+                ))}
+              </GoogleMap>
+            </LoadScript>
           </div>
         </div>
       </div>
