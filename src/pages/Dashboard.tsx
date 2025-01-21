@@ -10,8 +10,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { useState, useMemo } from 'react';
+
+const mapContainerStyle = {
+  width: '100%',
+  height: '500px',
+  marginTop: '20px',
+  borderRadius: '8px'
+};
+
+const center = {
+  lat: 28.5383, // Orlando, FL approximate center
+  lng: -81.3792,
+};
 
 export const Dashboard = () => {
+  const [selectedZip, setSelectedZip] = useState<string>('');
+
   const { data: leadsCount, isLoading: isLoadingLeads } = useQuery({
     queryKey: ['propertiesCount'],
     queryFn: async () => {
@@ -94,6 +110,36 @@ export const Dashboard = () => {
     }
   });
 
+  const { data: properties } = useQuery({
+    queryKey: ['properties', selectedZip],
+    queryFn: async () => {
+      if (!selectedZip) return [];
+      
+      const { data, error } = await supabase
+        .from('Propiedades')
+        .select('address_latitude, address_longitude, address_formattedStreet')
+        .eq('address_zip', selectedZip);
+      
+      if (error) {
+        console.error('Error fetching properties:', error);
+        throw error;
+      }
+
+      return data;
+    },
+    enabled: !!selectedZip
+  });
+
+  const markers = useMemo(() => {
+    return properties?.map((property, index) => ({
+      position: {
+        lat: property.address_latitude || 0,
+        lng: property.address_longitude || 0,
+      },
+      title: property.address_formattedStreet || `Property ${index + 1}`,
+    })) || [];
+  }, [properties]);
+
   return (
     <DashboardSidebar>
       <div className="min-h-screen bg-secondary p-6">
@@ -148,7 +194,7 @@ export const Dashboard = () => {
           <h2 className="text-2xl font-semibold mt-12 mb-6">Segmentación de Propiedades</h2>
           
           <div className="w-full max-w-xs">
-            <Select>
+            <Select onValueChange={setSelectedZip} value={selectedZip}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecciona el Zipcode" />
               </SelectTrigger>
@@ -161,6 +207,22 @@ export const Dashboard = () => {
               </SelectContent>
             </Select>
           </div>
+
+          <LoadScript googleMapsApiKey={process.env.GOOGLE_MAPS_API_KEY || ''}>
+            <GoogleMap
+              mapContainerStyle={mapContainerStyle}
+              center={center}
+              zoom={11}
+            >
+              {markers.map((marker, index) => (
+                <Marker
+                  key={index}
+                  position={marker.position}
+                  title={marker.title}
+                />
+              ))}
+            </GoogleMap>
+          </LoadScript>
         </div>
       </div>
     </DashboardSidebar>
