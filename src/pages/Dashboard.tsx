@@ -119,12 +119,19 @@ export const Dashboard = () => {
   });
 
   const { data: availableScores } = useQuery({
-    queryKey: ['availableScores'],
+    queryKey: ['availableScores', selectedZips],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('Propiedades')
         .select('combined_score')
         .not('combined_score', 'is', null);
+      
+      // Filter by selected zip codes if any are selected
+      if (selectedZips.length > 0) {
+        query = query.in('address_zip', selectedZips.map(zip => parseInt(zip, 10)));
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       const uniqueScores = Array.from(new Set(data.map(item => item.combined_score))).sort();
