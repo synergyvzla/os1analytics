@@ -7,6 +7,7 @@ import { SummaryCards } from "@/components/dashboard/SummaryCards";
 import { PropertiesMap } from "@/components/dashboard/PropertiesMap";
 import { usePropertyFilters } from "@/hooks/usePropertyFilters";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const Dashboard = () => {
   const {
@@ -116,8 +117,8 @@ export const Dashboard = () => {
             Mostrando <span className="text-base text-primary">{displayCount}</span> propiedades
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="max-h-[400px] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
+            <ScrollArea className="h-[400px] w-full">
               <Table>
                 <TableHeader className="sticky top-0 bg-white z-10">
                   <TableRow>
@@ -130,7 +131,7 @@ export const Dashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {properties?.slice(0, 5).map((property: any) => (
+                  {properties?.map((property: any) => (
                     <TableRow key={property.propertyId}>
                       <TableCell>{property.combined_score}</TableCell>
                       <TableCell>{property.address_street}</TableCell>
@@ -142,7 +143,7 @@ export const Dashboard = () => {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </ScrollArea>
           </div>
 
           <div className="mt-2">
