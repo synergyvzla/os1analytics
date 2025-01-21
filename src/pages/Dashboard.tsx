@@ -3,23 +3,10 @@ import { DashboardSidebar } from "@/components/DashboardSidebar"
 import { supabase } from "@/integrations/supabase/client"
 import { useQuery } from "@tanstack/react-query"
 import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api'
-import { useState, useMemo, useRef, useEffect } from 'react'
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import { Check, ChevronDown, ChevronUp, Search, X } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuCheckboxItem,
-} from "@/components/ui/dropdown-menu"
+import { useState, useMemo } from 'react'
+import { ZipCodeFilter } from "@/components/dashboard/ZipCodeFilter"
+import { ScoreFilter } from "@/components/dashboard/ScoreFilter"
 
 const mapContainerStyle = {
   width: '100%',
@@ -58,24 +45,13 @@ const mapOptions = {
 
 export const Dashboard = () => {
   const [selectedZips, setSelectedZips] = useState<string[]>([]);
+  const [selectedScores, setSelectedScores] = useState<string[]>([]);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [mapZoom, setMapZoom] = useState(9);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isOpen, setIsOpen] = useState(true);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Cerrar el dropdown cuando se hace clic fuera
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const [zipSearchQuery, setZipSearchQuery] = useState("");
+  const [scoreSearchQuery, setScoreSearchQuery] = useState("");
+  const [isZipDropdownOpen, setIsZipDropdownOpen] = useState(false);
+  const [isScoreDropdownOpen, setIsScoreDropdownOpen] = useState(false);
 
   const { data: leadsCount, isLoading: isLoadingLeads } = useQuery({
     queryKey: ['propertiesCount'],
@@ -142,8 +118,22 @@ export const Dashboard = () => {
     }
   });
 
+  const { data: availableScores } = useQuery({
+    queryKey: ['availableScores'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('Propiedades')
+        .select('combined_score')
+        .not('combined_score', 'is', null);
+      
+      if (error) throw error;
+      const uniqueScores = Array.from(new Set(data.map(item => item.combined_score))).sort();
+      return uniqueScores;
+    }
+  });
+
   const { data: properties } = useQuery({
-    queryKey: ['properties', selectedZips],
+    queryKey: ['properties', selectedZips, selectedScores],
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
@@ -151,6 +141,10 @@ export const Dashboard = () => {
       
       if (selectedZips.length > 0) {
         query = query.in('address_zip', selectedZips.map(zip => parseInt(zip, 10)));
+      }
+
+      if (selectedScores.length > 0) {
+        query = query.in('combined_score', selectedScores.map(score => parseInt(score, 10)));
       }
       
       const { data, error } = await query;
@@ -180,13 +174,6 @@ export const Dashboard = () => {
     })) || [];
   }, [properties]);
 
-  const filteredZipCodes = useMemo(() => {
-    if (!availableZipCodes) return [];
-    return availableZipCodes.filter(zip => 
-      zip.toString().includes(searchQuery)
-    );
-  }, [availableZipCodes, searchQuery]);
-
   const handleZipSelect = (zip: string) => {
     setSelectedZips(prev => {
       if (zip === 'all') {
@@ -199,8 +186,24 @@ export const Dashboard = () => {
     });
   };
 
+  const handleScoreSelect = (score: string) => {
+    setSelectedScores(prev => {
+      if (score === 'all') {
+        return prev.length === availableScores?.length ? [] : (availableScores?.map(s => s.toString()) || []);
+      }
+      if (prev.includes(score)) {
+        return prev.filter(s => s !== score);
+      }
+      return [...prev, score];
+    });
+  };
+
   const removeZip = (zip: string) => {
     setSelectedZips(prev => prev.filter(z => z !== zip));
+  };
+
+  const removeScore = (score: string) => {
+    setSelectedScores(prev => prev.filter(s => s !== score));
   };
 
   return (
@@ -260,74 +263,33 @@ export const Dashboard = () => {
             <CardHeader>
               <CardTitle>Filtros de búsqueda</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="relative" ref={dropdownRef}>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {selectedZips.map((zip) => (
-                      <Badge
-                        key={zip}
-                        variant="secondary"
-                        className="flex items-center gap-1 px-3 py-1"
-                      >
-                        {zip}
-                        <button
-                          onClick={() => removeZip(zip)}
-                          className="ml-1 hover:bg-secondary-foreground/10 rounded-full"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      >
-                        <span>Seleccionar códigos postales</span>
-                        <ChevronDown className="h-4 w-4 opacity-50" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      className="w-[var(--radix-dropdown-menu-trigger-width)] p-0"
-                      align="start"
-                    >
-                      <div className="p-2">
-                        <div className="relative">
-                          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="Buscar código postal..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-8"
-                          />
-                        </div>
-                      </div>
-                      <DropdownMenuSeparator />
-                      <ScrollArea className="h-[200px]">
-                        <DropdownMenuCheckboxItem
-                          checked={selectedZips.length === availableZipCodes?.length}
-                          onCheckedChange={() => handleZipSelect('all')}
-                        >
-                          Seleccionar todos
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuSeparator />
-                        {filteredZipCodes.map((zip) => (
-                          <DropdownMenuCheckboxItem
-                            key={zip}
-                            checked={selectedZips.includes(zip.toString())}
-                            onCheckedChange={() => handleZipSelect(zip.toString())}
-                          >
-                            {zip}
-                          </DropdownMenuCheckboxItem>
-                        ))}
-                      </ScrollArea>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Códigos Postales</h3>
+                  <ZipCodeFilter
+                    selectedZips={selectedZips}
+                    availableZipCodes={availableZipCodes}
+                    searchQuery={zipSearchQuery}
+                    setSearchQuery={setZipSearchQuery}
+                    handleZipSelect={handleZipSelect}
+                    removeZip={removeZip}
+                    isDropdownOpen={isZipDropdownOpen}
+                    setIsDropdownOpen={setIsZipDropdownOpen}
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Scores</h3>
+                  <ScoreFilter
+                    selectedScores={selectedScores}
+                    availableScores={availableScores}
+                    searchQuery={scoreSearchQuery}
+                    setSearchQuery={setScoreSearchQuery}
+                    handleScoreSelect={handleScoreSelect}
+                    removeScore={removeScore}
+                    isDropdownOpen={isScoreDropdownOpen}
+                    setIsDropdownOpen={setIsScoreDropdownOpen}
+                  />
                 </div>
               </div>
             </CardContent>
