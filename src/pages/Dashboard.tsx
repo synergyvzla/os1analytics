@@ -3,6 +3,7 @@ import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { ZipCodeFilter } from "@/components/dashboard/ZipCodeFilter";
 import { ScoreFilter } from "@/components/dashboard/ScoreFilter";
 import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
+import { PriceRangeFilter } from "@/components/dashboard/PriceRangeFilter";
 import { SummaryCards } from "@/components/dashboard/SummaryCards";
 import { PropertiesMap } from "@/components/dashboard/PropertiesMap";
 import { usePropertyFilters } from "@/hooks/usePropertyFilters";
@@ -30,6 +31,8 @@ export const Dashboard = () => {
     removeScore,
     date,
     setDate,
+    priceRange,
+    setPriceRange,
   } = usePropertyFilters();
 
   return (
@@ -72,6 +75,13 @@ export const Dashboard = () => {
                     removeScore={removeScore}
                     isDropdownOpen={isScoreDropdownOpen}
                     setIsDropdownOpen={setIsScoreDropdownOpen}
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Rango de Precio Estimado</h3>
+                  <PriceRangeFilter
+                    priceRange={priceRange}
+                    setPriceRange={setPriceRange}
                   />
                 </div>
                 <div>

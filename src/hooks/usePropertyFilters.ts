@@ -13,6 +13,7 @@ export const usePropertyFilters = () => {
   const [isScoreDropdownOpen, setIsScoreDropdownOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState({ lat: 28.5383, lng: -81.3792 });
   const [mapZoom, setMapZoom] = useState(9);
+  const [priceRange, setPriceRange] = useState([250000, 2500000]);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(2024, 0, 1),
     to: new Date(2025, 0, 17),
@@ -53,11 +54,13 @@ export const usePropertyFilters = () => {
   });
 
   const { data: properties } = useQuery({
-    queryKey: ['properties', selectedZips, selectedScores, date],
+    queryKey: ['properties', selectedZips, selectedScores, date, priceRange],
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
-        .select('*');
+        .select('*')
+        .gte('valuation_estimatedValue', priceRange[0])
+        .lte('valuation_estimatedValue', priceRange[1]);
       
       if (selectedZips.length > 0) {
         query = query.in('address_zip', selectedZips.map(zip => parseInt(zip, 10)));
@@ -79,7 +82,6 @@ export const usePropertyFilters = () => {
       if (error) throw error;
 
       if (data && data.length === 0) {
-        // Si no hay datos, buscar el rango de fechas disponible
         const { data: dateRangeData } = await supabase
           .from('Propiedades')
           .select('top_gust_1_date')
@@ -172,5 +174,7 @@ export const usePropertyFilters = () => {
     removeScore,
     date,
     setDate,
+    priceRange,
+    setPriceRange,
   };
 };
