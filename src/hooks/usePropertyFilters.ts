@@ -17,11 +17,36 @@ export const usePropertyFilters = () => {
   const [date, setDate] = useState<DateRange | undefined>(undefined); // Removemos la fecha inicial
 
   const { data: totalProperties } = useQuery({
-    queryKey: ['totalProperties'],
+    queryKey: ['totalProperties', priceRange, selectedZips, selectedScores, date],
     queryFn: async () => {
-      const { count, error } = await supabase
+      let query = supabase
         .from('Propiedades')
         .select('*', { count: 'exact' });
+      
+      // Solo aplicamos filtros si han sido seleccionados explícitamente
+      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
+        query = query
+          .gte('valuation_estimatedValue', priceRange[0])
+          .lte('valuation_estimatedValue', priceRange[1]);
+      }
+      
+      if (selectedZips.length > 0) {
+        query = query.in('address_zip', selectedZips.map(zip => parseInt(zip, 10)));
+      }
+
+      if (selectedScores.length > 0) {
+        query = query.in('combined_score', selectedScores.map(score => parseInt(score, 10)));
+      }
+
+      if (date?.from) {
+        query = query.gte('top_gust_1_date', date.from.toISOString());
+      }
+
+      if (date?.to) {
+        query = query.lte('top_gust_1_date', date.to.toISOString());
+      }
+      
+      const { count, error } = await query;
       
       if (error) throw error;
       return count || 0;
