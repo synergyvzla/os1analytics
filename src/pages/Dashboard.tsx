@@ -20,7 +20,7 @@ const mapContainerStyle = {
   borderRadius: '8px'
 };
 
-// Centro inicial en Orlando, FL
+// Centro inicial en Orlando, FL con zoom reducido
 const defaultCenter = {
   lat: 28.5383,
   lng: -81.3792,
@@ -30,6 +30,7 @@ const mapOptions = {
   mapTypeControl: true,
   streetViewControl: true,
   fullscreenControl: true,
+  zoom: 9, // Zoom inicial reducido para ver mejor el área
   styles: [
     {
       featureType: "all",
@@ -52,7 +53,7 @@ const mapOptions = {
 export const Dashboard = () => {
   const [selectedZip, setSelectedZip] = useState<string>('');
   const [mapCenter, setMapCenter] = useState(defaultCenter);
-  const [mapZoom, setMapZoom] = useState(11);
+  const [mapZoom, setMapZoom] = useState(9); // Zoom inicial reducido
 
   const { data: leadsCount, isLoading: isLoadingLeads } = useQuery({
     queryKey: ['propertiesCount'],
@@ -126,22 +127,21 @@ export const Dashboard = () => {
         .from('Propiedades')
         .select('address_latitude, address_longitude, address_formattedStreet');
       
-      if (selectedZip) {
+      if (selectedZip && selectedZip !== 'all') {
         query = query.eq('address_zip', parseInt(selectedZip, 10));
       }
       
       const { data, error } = await query;
       if (error) throw error;
 
-      // Actualizar el centro del mapa basado en las propiedades
       if (data && data.length > 0) {
         const avgLat = data.reduce((sum, prop) => sum + (prop.address_latitude || 0), 0) / data.length;
         const avgLng = data.reduce((sum, prop) => sum + (prop.address_longitude || 0), 0) / data.length;
         setMapCenter({ lat: avgLat, lng: avgLng });
-        setMapZoom(13);
+        setMapZoom(12);
       } else {
         setMapCenter(defaultCenter);
-        setMapZoom(11);
+        setMapZoom(9);
       }
 
       return data;
@@ -214,9 +214,10 @@ export const Dashboard = () => {
           <div className="w-full max-w-xs mb-4">
             <Select onValueChange={setSelectedZip} value={selectedZip}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecciona el Zipcode" />
+                <SelectValue placeholder="Seleccione uno o más códigos postales" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
                 {availableZipCodes?.map((zip) => (
                   <SelectItem key={zip} value={zip.toString()}>
                     {zip}
