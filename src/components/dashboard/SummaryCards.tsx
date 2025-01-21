@@ -58,46 +58,46 @@ export const SummaryCards = () => {
   });
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Cantidad de potenciales leads</CardTitle>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Card className="shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Cantidad de potenciales leads</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-bold">
             {isLoadingLeads ? "Cargando..." : leadsCount}
           </p>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Códigos Zips mapeados</CardTitle>
+      <Card className="shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Códigos Zips mapeados</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">
+          <p className="text-2xl font-bold">
             {isLoadingZips ? "Cargando..." : uniqueZipCount}
           </p>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Score de propiedades</CardTitle>
+      <Card className="shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Score de propiedades</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           {isLoadingScores ? (
-            <p className="text-center">Cargando...</p>
+            <p className="text-center text-sm">Cargando...</p>
           ) : (
             scoreDistribution?.map((item) => (
-              <div key={item.score} className="space-y-2">
-                <div className="flex justify-between text-sm">
+              <div key={item.score} className="space-y-1">
+                <div className="flex justify-between text-xs">
                   <span>{item.score}</span>
                   <span>{item.percentage}%</span>
                 </div>
                 <Progress 
                   value={item.percentage} 
-                  className={cn("h-2")}
+                  className={cn("h-1.5")}
                   indicatorClassName={cn("transition-all", {
                     "bg-[#ea384c]": item.score === "Score 1",
                     "bg-[#F97316]": item.score === "Score 2",

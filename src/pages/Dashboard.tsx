@@ -39,22 +39,22 @@ export const Dashboard = () => {
 
   return (
     <DashboardSidebar>
-      <div className="min-h-screen bg-secondary p-6">
-        <div className="container mx-auto space-y-6">
-          <h1 className="text-4xl font-inter font-semibold tracking-tight">Summary</h1>
+      <div className="min-h-screen bg-secondary p-4">
+        <div className="container mx-auto space-y-4">
+          <h1 className="text-2xl font-inter font-semibold tracking-tight">Summary</h1>
           
           <SummaryCards />
 
-          <h2 className="text-2xl font-semibold">Segmentación de Propiedades</h2>
+          <h2 className="text-xl font-semibold">Segmentación de Propiedades</h2>
           
           <Card className="w-full">
-            <CardHeader>
-              <CardTitle>Filtros de búsqueda</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Filtros de búsqueda</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Códigos Postales</h3>
+                  <h3 className="text-base font-semibold mb-2">Códigos Postales</h3>
                   <ZipCodeFilter
                     selectedZips={selectedZips}
                     availableZipCodes={availableZipCodes}
@@ -67,7 +67,7 @@ export const Dashboard = () => {
                   />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Scores</h3>
+                  <h3 className="text-base font-semibold mb-2">Scores</h3>
                   <ScoreFilter
                     selectedScores={selectedScores}
                     availableScores={availableScores}
@@ -80,7 +80,7 @@ export const Dashboard = () => {
                   />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Rango de Precio Estimado</h3>
+                  <h3 className="text-base font-semibold mb-2">Rango de Precio Estimado</h3>
                   <PriceRangeFilter
                     priceRange={priceRange}
                     setPriceRange={setPriceRange}
@@ -90,8 +90,8 @@ export const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <div className="flex items-baseline gap-2 text-2xl font-semibold">
-            Mostrando <span className="text-4xl text-primary">{displayCount}</span> propiedades
+          <div className="flex items-baseline gap-2 text-lg font-semibold">
+            Mostrando <span className="text-2xl text-primary">{displayCount}</span> propiedades
           </div>
 
           <div className="mt-4">
