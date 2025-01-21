@@ -11,7 +11,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar"
 import {
   DropdownMenu,
@@ -51,8 +50,8 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <Sidebar>
-          <SidebarHeader>
-            <SidebarTrigger />
+          <SidebarHeader className="p-4">
+            <h2 className="text-lg font-semibold">Well Done Mitigation</h2>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
