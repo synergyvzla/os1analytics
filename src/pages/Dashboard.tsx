@@ -113,12 +113,15 @@ export const Dashboard = () => {
   const { data: properties } = useQuery({
     queryKey: ['properties', selectedZip],
     queryFn: async () => {
-      if (!selectedZip) return [];
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('Propiedades')
-        .select('address_latitude, address_longitude, address_formattedStreet')
-        .eq('address_zip', selectedZip);
+        .select('address_latitude, address_longitude, address_formattedStreet');
+      
+      if (selectedZip) {
+        query = query.eq('address_zip', selectedZip);
+      }
+      
+      const { data, error } = await query;
       
       if (error) {
         console.error('Error fetching properties:', error);
@@ -126,8 +129,7 @@ export const Dashboard = () => {
       }
 
       return data;
-    },
-    enabled: !!selectedZip
+    }
   });
 
   const markers = useMemo(() => {
