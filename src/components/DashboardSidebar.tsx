@@ -1,4 +1,4 @@
-import { LogOut, User } from "lucide-react"
+import { LogOut, User, LayoutDashboard, Users, FileText } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import { supabase } from "@/integrations/supabase/client"
@@ -7,6 +7,9 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
@@ -52,7 +55,32 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
             <SidebarTrigger />
           </SidebarHeader>
           <SidebarContent>
-            {/* Aquí puedes agregar más elementos del menú si lo necesitas */}
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <button onClick={() => navigate("/dashboard")} className="w-full">
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span>Dashboard</span>
+                  </button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <button onClick={() => navigate("/crm")} className="w-full">
+                    <Users className="h-4 w-4" />
+                    <span>CRM</span>
+                  </button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <button onClick={() => navigate("/docs")} className="w-full">
+                    <FileText className="h-4 w-4" />
+                    <span>Documentación</span>
+                  </button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </SidebarContent>
           <SidebarFooter className="border-t p-4">
             <DropdownMenu>
