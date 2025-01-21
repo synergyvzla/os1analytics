@@ -52,9 +52,11 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
               min={250000}
               max={2500000}
               step={10000}
-              value={priceRange}
+              value={[priceRange[0], priceRange[1]]}
               onValueChange={setPriceRange}
               className="w-full"
+              defaultValue={[priceRange[0], priceRange[1]]}
+              thumbs={2}
             />
             <div className="flex justify-between mt-2 text-sm text-muted-foreground">
               <span>{formatPrice(250000)}</span>
