@@ -7,14 +7,17 @@ export const Dashboard = () => {
   const { data: leadsCount, isLoading } = useQuery({
     queryKey: ['propertiesCount'],
     queryFn: async () => {
-      const { count, error } = await supabase
+      console.log('Fetching count...');
+      const { data, count, error } = await supabase
         .from('Propiedades en Orlando')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact' });
       
       if (error) {
         console.error('Error fetching count:', error);
         throw error;
       }
+
+      console.log('Query result:', { data, count });
       return count || 0;
     }
   });
