@@ -40,6 +40,7 @@ interface Property {
   address_latitude: number | null;
   address_longitude: number | null;
   address_formattedStreet: string | null;
+  combined_score: number | null;
 }
 
 interface PropertiesMapProps {
@@ -47,6 +48,25 @@ interface PropertiesMapProps {
   center: { lat: number; lng: number };
   zoom: number;
 }
+
+const getMarkerIcon = (score: number | null) => {
+  // Define el color según el score
+  let color = '#ea384c'; // Default rojo para score 1
+  if (score === 2) {
+    color = '#F97316'; // Amarillo para score 2
+  } else if (score === 3) {
+    color = '#0EA5E9'; // Verde para score 3
+  }
+
+  return {
+    path: google.maps.SymbolPath.CIRCLE,
+    fillColor: color,
+    fillOpacity: 0.9,
+    strokeWeight: 1,
+    strokeColor: '#ffffff',
+    scale: 10,
+  };
+};
 
 export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) => {
   const markers = useMemo(() => {
@@ -56,6 +76,7 @@ export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) 
         lng: property.address_longitude || 0,
       },
       title: property.address_formattedStreet || `Property ${index + 1}`,
+      icon: getMarkerIcon(property.combined_score),
     })) || [];
   }, [properties]);
 
@@ -72,6 +93,7 @@ export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) 
             key={index}
             position={marker.position}
             title={marker.title}
+            icon={marker.icon}
           />
         ))}
       </GoogleMap>
