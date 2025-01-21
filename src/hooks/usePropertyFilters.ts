@@ -70,9 +70,13 @@ export const usePropertyFilters = () => {
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
-        .select('*')
-        .gte('valuation_estimatedValue', priceRange[0])
-        .lte('valuation_estimatedValue', priceRange[1]);
+        .select('*');
+      
+      if (priceRange) {
+        query = query
+          .gte('valuation_estimatedValue', priceRange[0])
+          .lte('valuation_estimatedValue', priceRange[1]);
+      }
       
       if (selectedZips.length > 0) {
         query = query.in('address_zip', selectedZips.map(zip => parseInt(zip, 10)));
