@@ -9,7 +9,7 @@ export const Dashboard = () => {
     queryFn: async () => {
       console.log('Fetching count...');
       const { data, count, error } = await supabase
-        .from('Propiedades en Orlando')
+        .from('Propiedades')
         .select('*', { count: 'exact' });
       
       if (error) {

@@ -36,7 +36,7 @@ export type Database = {
         }
         Relationships: []
       }
-      "Propiedades en Orlando": {
+      Propiedades: {
         Row: {
           address_countyFipsCode: number | null
           address_formattedStreet: string | null
