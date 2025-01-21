@@ -6,6 +6,7 @@ import { PriceRangeFilter } from "@/components/dashboard/PriceRangeFilter";
 import { SummaryCards } from "@/components/dashboard/SummaryCards";
 import { PropertiesMap } from "@/components/dashboard/PropertiesMap";
 import { usePropertyFilters } from "@/hooks/usePropertyFilters";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const Dashboard = () => {
   const {
@@ -36,6 +37,27 @@ export const Dashboard = () => {
   const displayCount = (selectedZips.length > 0 || selectedScores.length > 0) 
     ? properties?.length || 0 
     : totalProperties || 0;
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatTopGusts = (property: any) => {
+    const gusts = [
+      property.top_gust_1,
+      property.top_gust_2,
+      property.top_gust_3,
+      property.top_gust_4,
+      property.top_gust_5
+    ].filter(gust => gust !== null);
+
+    return `[${gusts.join(', ')}]`;
+  };
 
   return (
     <DashboardSidebar>
@@ -90,8 +112,37 @@ export const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <div className="flex items-baseline gap-1 text-sm font-semibold">
+          <div className="flex items-baseline gap-1 text-sm font-semibold py-6">
             Mostrando <span className="text-base text-primary">{displayCount}</span> propiedades
+          </div>
+
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="max-h-[400px] overflow-y-auto">
+              <Table>
+                <TableHeader className="sticky top-0 bg-white z-10">
+                  <TableRow>
+                    <TableHead>Score</TableHead>
+                    <TableHead>Dirección</TableHead>
+                    <TableHead>Código Postal</TableHead>
+                    <TableHead>Valor Estimado</TableHead>
+                    <TableHead>Años de residencia</TableHead>
+                    <TableHead>Top 5 Ráfagas</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {properties?.slice(0, 5).map((property: any) => (
+                    <TableRow key={property.propertyId}>
+                      <TableCell>{property.combined_score}</TableCell>
+                      <TableCell>{property.address_street}</TableCell>
+                      <TableCell>{property.address_zip}</TableCell>
+                      <TableCell>{formatCurrency(property.valuation_estimatedValue)}</TableCell>
+                      <TableCell>{property.owner_lengthOfResidenceYears}</TableCell>
+                      <TableCell>{formatTopGusts(property)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
 
           <div className="mt-2">
