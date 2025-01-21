@@ -3,6 +3,13 @@ import { DashboardSidebar } from "@/components/DashboardSidebar"
 import { supabase } from "@/integrations/supabase/client"
 import { useQuery } from "@tanstack/react-query"
 import { Progress } from "@/components/ui/progress"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export const Dashboard = () => {
   const { data: leadsCount, isLoading: isLoadingLeads } = useQuery({
@@ -53,7 +60,6 @@ export const Dashboard = () => {
         throw error;
       }
 
-      // Count occurrences of each score
       const distribution = data.reduce((acc: Record<number, number>, curr) => {
         if (curr.combined_score) {
           acc[curr.combined_score] = (acc[curr.combined_score] || 0) + 1;
@@ -61,7 +67,6 @@ export const Dashboard = () => {
         return acc;
       }, {});
 
-      // Calculate percentages
       const total = Object.values(distribution).reduce((sum, count) => sum + count, 0);
       return Object.entries(distribution).map(([score, count]) => ({
         score: `Score ${score}`,
@@ -71,11 +76,29 @@ export const Dashboard = () => {
     }
   });
 
+  const { data: availableZipCodes } = useQuery({
+    queryKey: ['availableZipCodes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('Propiedades')
+        .select('address_zip')
+        .not('address_zip', 'is', null);
+      
+      if (error) {
+        console.error('Error fetching zip codes:', error);
+        throw error;
+      }
+
+      const uniqueZips = Array.from(new Set(data.map(item => item.address_zip))).sort();
+      return uniqueZips;
+    }
+  });
+
   return (
     <DashboardSidebar>
       <div className="min-h-screen bg-secondary p-6">
         <div className="container mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Panel de Control</h1>
+          <h1 className="text-4xl font-inter font-semibold tracking-tight mb-8">Summary</h1>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
@@ -120,6 +143,23 @@ export const Dashboard = () => {
                 )}
               </CardContent>
             </Card>
+          </div>
+
+          <h2 className="text-2xl font-semibold mt-12 mb-6">Segmentación de Propiedades</h2>
+          
+          <div className="w-full max-w-xs">
+            <Select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecciona el Zipcode" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableZipCodes?.map((zip) => (
+                  <SelectItem key={zip} value={zip.toString()}>
+                    {zip}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
