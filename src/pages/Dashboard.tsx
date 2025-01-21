@@ -183,4 +183,5 @@ export const Dashboard = () => {
         </div>
       </div>
     </DashboardSidebar>
-  </div>
+  )
+}
