@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardSidebar } from "@/components/DashboardSidebar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { supabase } from "@/integrations/supabase/client"
+import { Database } from "@/integrations/supabase/types"
+
+type PropertyData = Database['public']['Tables']['Propiedades en Orlando']['Row']
 
 interface PropertyStats {
   total_properties: number
@@ -15,7 +18,7 @@ interface PropertyStats {
 const fetchPropertyStats = async (): Promise<PropertyStats> => {
   // Get total properties
   const { count: total_properties, error: countError } = await supabase
-    .from('"Propiedades en Orlando"')
+    .from('Propiedades en Orlando')
     .select('*', { count: 'exact', head: true })
 
   if (countError) {
@@ -25,7 +28,7 @@ const fetchPropertyStats = async (): Promise<PropertyStats> => {
 
   // Get unique zipcodes
   const { data: zipcodes, error: zipError } = await supabase
-    .from('"Propiedades en Orlando"')
+    .from('Propiedades en Orlando')
     .select('address_zip')
     .not('address_zip', 'is', null)
 
@@ -38,7 +41,7 @@ const fetchPropertyStats = async (): Promise<PropertyStats> => {
 
   // Get risk distribution based on combined_score
   const { data: risk_data, error: riskError } = await supabase
-    .from('"Propiedades en Orlando"')
+    .from('Propiedades en Orlando')
     .select('combined_score')
     .not('combined_score', 'is', null)
 
