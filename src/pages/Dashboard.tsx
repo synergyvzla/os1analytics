@@ -3,6 +3,7 @@ import { DashboardSidebar } from "@/components/DashboardSidebar"
 import { supabase } from "@/integrations/supabase/client"
 import { useQuery } from "@tanstack/react-query"
 import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -12,6 +13,9 @@ import {
 } from "@/components/ui/select"
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import { useState, useMemo } from 'react';
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { Check, X } from "lucide-react"
 
 const mapContainerStyle = {
   width: '100%',
@@ -20,7 +24,6 @@ const mapContainerStyle = {
   borderRadius: '8px'
 };
 
-// Centro inicial en Orlando, FL con zoom reducido
 const defaultCenter = {
   lat: 28.5383,
   lng: -81.3792,
@@ -30,7 +33,7 @@ const mapOptions = {
   mapTypeControl: true,
   streetViewControl: true,
   fullscreenControl: true,
-  zoom: 9, // Zoom inicial reducido para ver mejor el área
+  zoom: 9,
   styles: [
     {
       featureType: "all",
@@ -51,9 +54,9 @@ const mapOptions = {
 };
 
 export const Dashboard = () => {
-  const [selectedZip, setSelectedZip] = useState<string>('');
+  const [selectedZips, setSelectedZips] = useState<string[]>([]);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
-  const [mapZoom, setMapZoom] = useState(9); // Zoom inicial reducido
+  const [mapZoom, setMapZoom] = useState(9);
 
   const { data: leadsCount, isLoading: isLoadingLeads } = useQuery({
     queryKey: ['propertiesCount'],
@@ -121,14 +124,14 @@ export const Dashboard = () => {
   });
 
   const { data: properties } = useQuery({
-    queryKey: ['properties', selectedZip],
+    queryKey: ['properties', selectedZips],
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
         .select('address_latitude, address_longitude, address_formattedStreet');
       
-      if (selectedZip && selectedZip !== 'all') {
-        query = query.eq('address_zip', parseInt(selectedZip, 10));
+      if (selectedZips.length > 0) {
+        query = query.in('address_zip', selectedZips.map(zip => parseInt(zip, 10)));
       }
       
       const { data, error } = await query;
@@ -157,6 +160,16 @@ export const Dashboard = () => {
       title: property.address_formattedStreet || `Property ${index + 1}`,
     })) || [];
   }, [properties]);
+
+  const handleZipSelect = (zip: string) => {
+    setSelectedZips(prev => {
+      if (zip === 'all') return [];
+      if (prev.includes(zip)) {
+        return prev.filter(z => z !== zip);
+      }
+      return [...prev, zip];
+    });
+  };
 
   return (
     <DashboardSidebar>
@@ -211,20 +224,51 @@ export const Dashboard = () => {
 
           <h2 className="text-2xl font-semibold mt-12 mb-6">Segmentación de Propiedades</h2>
           
-          <div className="w-full max-w-xs mb-4">
-            <Select onValueChange={setSelectedZip} value={selectedZip}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Seleccione uno o más códigos postales" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {availableZipCodes?.map((zip) => (
-                  <SelectItem key={zip} value={zip.toString()}>
-                    {zip}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="w-full mb-4">
+            <div className="flex flex-col space-y-2">
+              <label className="text-sm font-medium">Códigos Postales Seleccionados:</label>
+              <div className="flex flex-wrap gap-2">
+                {selectedZips.length === 0 ? (
+                  <Badge variant="secondary">Todos</Badge>
+                ) : (
+                  selectedZips.map(zip => (
+                    <Badge 
+                      key={zip} 
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      {zip}
+                      <X 
+                        className="h-3 w-3 cursor-pointer" 
+                        onClick={() => handleZipSelect(zip)}
+                      />
+                    </Badge>
+                  ))
+                )}
+              </div>
+              <ScrollArea className="h-32 w-full rounded-md border">
+                <div className="p-4">
+                  <div 
+                    className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-accent rounded-md"
+                    onClick={() => setSelectedZips([])}
+                  >
+                    <Check className={`h-4 w-4 ${selectedZips.length === 0 ? 'opacity-100' : 'opacity-0'}`} />
+                    <span>Todos</span>
+                  </div>
+                  <Separator className="my-2" />
+                  {availableZipCodes?.map((zip) => (
+                    <div
+                      key={zip}
+                      className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-accent rounded-md"
+                      onClick={() => handleZipSelect(zip.toString())}
+                    >
+                      <Check className={`h-4 w-4 ${selectedZips.includes(zip.toString()) ? 'opacity-100' : 'opacity-0'}`} />
+                      <span>{zip}</span>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
           </div>
 
           <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-lg">
