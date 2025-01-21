@@ -9,9 +9,12 @@ export const Dashboard = () => {
     queryFn: async () => {
       const { count, error } = await supabase
         .from('Propiedades en Orlando')
-        .select('propertyId', { count: 'exact' });
+        .select('*', { count: 'exact', head: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching count:', error);
+        throw error;
+      }
       return count || 0;
     }
   });
