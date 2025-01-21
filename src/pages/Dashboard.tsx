@@ -117,10 +117,10 @@ export const Dashboard = () => {
             Mostrando <span className="text-base text-primary">{displayCount}</span> propiedades
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
+          <div className="bg-white rounded-lg shadow overflow-hidden mb-16">
             <ScrollArea className="h-[400px] w-full">
               <Table>
-                <TableHeader className="sticky top-0 bg-white z-10">
+                <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
                   <TableRow>
                     <TableHead>Score</TableHead>
                     <TableHead>Dirección</TableHead>
