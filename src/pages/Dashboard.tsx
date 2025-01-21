@@ -43,6 +43,20 @@ export const Dashboard = () => {
           
           <SummaryCards />
 
+          <div className="mt-4">
+            <PropertiesMap
+              properties={properties}
+              center={mapCenter}
+              zoom={mapZoom}
+            />
+          </div>
+
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-2xl font-semibold">Mostrando</h2>
+            <span className="text-4xl font-bold text-primary">{properties?.length || 0}</span>
+            <h2 className="text-2xl font-semibold">propiedades</h2>
+          </div>
+
           <h2 className="text-2xl font-semibold">Segmentación de Propiedades</h2>
           
           <Card className="w-full">
@@ -91,14 +105,6 @@ export const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-
-          <div className="mt-4">
-            <PropertiesMap
-              properties={properties}
-              center={mapCenter}
-              zoom={mapZoom}
-            />
-          </div>
         </div>
       </div>
     </DashboardSidebar>
