@@ -25,6 +25,7 @@ export const Dashboard = () => {
     availableZipCodes,
     availableScores,
     properties,
+    totalProperties,
     handleZipSelect,
     handleScoreSelect,
     removeZip,
@@ -34,6 +35,10 @@ export const Dashboard = () => {
     priceRange,
     setPriceRange,
   } = usePropertyFilters();
+
+  const displayCount = (selectedZips.length > 0 || selectedScores.length > 0 || date?.from || date?.to) 
+    ? properties?.length || 0 
+    : totalProperties || 0;
 
   return (
     <DashboardSidebar>
@@ -93,7 +98,7 @@ export const Dashboard = () => {
           </Card>
 
           <div className="flex items-baseline gap-2 text-2xl font-semibold">
-            Mostrando <span className="text-4xl text-primary">{properties?.length || 0}</span> propiedades
+            Mostrando <span className="text-4xl text-primary">{displayCount}</span> propiedades
           </div>
 
           <div className="mt-4">

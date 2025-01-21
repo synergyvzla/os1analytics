@@ -3,8 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
 import { toast } from "@/hooks/use-toast";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 
 export const usePropertyFilters = () => {
   const [selectedZips, setSelectedZips] = useState<string[]>([]);
@@ -19,6 +17,18 @@ export const usePropertyFilters = () => {
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(2024, 0, 1),
     to: new Date(2025, 0, 17),
+  });
+
+  const { data: totalProperties } = useQuery({
+    queryKey: ['totalProperties'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('Propiedades')
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) throw error;
+      return count || 0;
+    }
   });
 
   const { data: availableZipCodes } = useQuery({
@@ -85,7 +95,6 @@ export const usePropertyFilters = () => {
 
       if (data && data.length === 0) {
         toast({
-          title: "No hay propiedades disponibles",
           description: "En ese rango de fecha no hay información disponible",
           duration: 5000,
         });
@@ -153,6 +162,7 @@ export const usePropertyFilters = () => {
     availableZipCodes,
     availableScores,
     properties,
+    totalProperties,
     handleZipSelect,
     handleScoreSelect,
     removeZip,
