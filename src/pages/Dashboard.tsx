@@ -20,29 +20,48 @@ const mapContainerStyle = {
   borderRadius: '8px'
 };
 
-// Centrado en Orlando, FL
-const center = {
+// Centro inicial en Orlando, FL
+const defaultCenter = {
   lat: 28.5383,
   lng: -81.3792,
 };
 
+const mapOptions = {
+  mapTypeControl: true,
+  streetViewControl: true,
+  fullscreenControl: true,
+  styles: [
+    {
+      featureType: "all",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#000000" }]
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: "#e9e9e9" }]
+    },
+    {
+      featureType: "landscape",
+      elementType: "geometry",
+      stylers: [{ color: "#f5f5f5" }]
+    }
+  ]
+};
+
 export const Dashboard = () => {
   const [selectedZip, setSelectedZip] = useState<string>('');
+  const [mapCenter, setMapCenter] = useState(defaultCenter);
+  const [mapZoom, setMapZoom] = useState(11);
 
   const { data: leadsCount, isLoading: isLoadingLeads } = useQuery({
     queryKey: ['propertiesCount'],
     queryFn: async () => {
-      console.log('Fetching count...');
-      const { data, count, error } = await supabase
+      const { count, error } = await supabase
         .from('Propiedades')
         .select('*', { count: 'exact' });
       
-      if (error) {
-        console.error('Error fetching count:', error);
-        throw error;
-      }
-
-      console.log('Query result:', { data, count });
+      if (error) throw error;
       return count || 0;
     }
   });
@@ -55,11 +74,7 @@ export const Dashboard = () => {
         .select('address_zip')
         .not('address_zip', 'is', null);
       
-      if (error) {
-        console.error('Error fetching zip codes:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       const uniqueZips = new Set(data.map(item => item.address_zip));
       return uniqueZips.size;
     }
@@ -72,10 +87,7 @@ export const Dashboard = () => {
         .from('Propiedades')
         .select('combined_score');
 
-      if (error) {
-        console.error('Error fetching scores:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       const distribution = data.reduce((acc: Record<number, number>, curr) => {
         if (curr.combined_score) {
@@ -101,11 +113,7 @@ export const Dashboard = () => {
         .select('address_zip')
         .not('address_zip', 'is', null);
       
-      if (error) {
-        console.error('Error fetching zip codes:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       const uniqueZips = Array.from(new Set(data.map(item => item.address_zip))).sort();
       return uniqueZips;
     }
@@ -119,15 +127,21 @@ export const Dashboard = () => {
         .select('address_latitude, address_longitude, address_formattedStreet');
       
       if (selectedZip) {
-        // Convert selectedZip to number before using it in the query
         query = query.eq('address_zip', parseInt(selectedZip, 10));
       }
       
       const { data, error } = await query;
-      
-      if (error) {
-        console.error('Error fetching properties:', error);
-        throw error;
+      if (error) throw error;
+
+      // Actualizar el centro del mapa basado en las propiedades
+      if (data && data.length > 0) {
+        const avgLat = data.reduce((sum, prop) => sum + (prop.address_latitude || 0), 0) / data.length;
+        const avgLng = data.reduce((sum, prop) => sum + (prop.address_longitude || 0), 0) / data.length;
+        setMapCenter({ lat: avgLat, lng: avgLng });
+        setMapZoom(13);
+      } else {
+        setMapCenter(defaultCenter);
+        setMapZoom(11);
       }
 
       return data;
@@ -197,7 +211,7 @@ export const Dashboard = () => {
 
           <h2 className="text-2xl font-semibold mt-12 mb-6">Segmentación de Propiedades</h2>
           
-          <div className="w-full max-w-xs">
+          <div className="w-full max-w-xs mb-4">
             <Select onValueChange={setSelectedZip} value={selectedZip}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecciona el Zipcode" />
@@ -212,26 +226,24 @@ export const Dashboard = () => {
             </Select>
           </div>
 
-          <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
-            <GoogleMap
-              mapContainerStyle={mapContainerStyle}
-              center={center}
-              zoom={11}
-              options={{
-                mapTypeControl: true,
-                streetViewControl: true,
-                fullscreenControl: true,
-              }}
-            >
-              {markers.map((marker, index) => (
-                <Marker
-                  key={index}
-                  position={marker.position}
-                  title={marker.title}
-                />
-              ))}
-            </GoogleMap>
-          </LoadScript>
+          <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-lg">
+            <LoadScript googleMapsApiKey="AIzaSyC2q-Pl2npZHP0T33HBbZpstTJE3UDWPog">
+              <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={mapCenter}
+                zoom={mapZoom}
+                options={mapOptions}
+              >
+                {markers.map((marker, index) => (
+                  <Marker
+                    key={index}
+                    position={marker.position}
+                    title={marker.title}
+                  />
+                ))}
+              </GoogleMap>
+            </LoadScript>
+          </div>
         </div>
       </div>
     </DashboardSidebar>
