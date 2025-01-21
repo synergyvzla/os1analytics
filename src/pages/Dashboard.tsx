@@ -14,23 +14,38 @@ interface PropertyStats {
 
 const fetchPropertyStats = async (): Promise<PropertyStats> => {
   // Get total properties
-  const { count: total_properties } = await supabase
-    .from('Propiedades en Orlando')
+  const { count: total_properties, error: countError } = await supabase
+    .from('"Propiedades en Orlando"')
     .select('*', { count: 'exact', head: true })
 
+  if (countError) {
+    console.error('Error fetching total properties:', countError)
+    throw countError
+  }
+
   // Get unique zipcodes
-  const { data: zipcodes } = await supabase
-    .from('Propiedades en Orlando')
+  const { data: zipcodes, error: zipError } = await supabase
+    .from('"Propiedades en Orlando"')
     .select('address_zip')
     .not('address_zip', 'is', null)
+
+  if (zipError) {
+    console.error('Error fetching zipcodes:', zipError)
+    throw zipError
+  }
 
   const unique_zipcodes = new Set(zipcodes?.map(p => p.address_zip)).size
 
   // Get risk distribution based on combined_score
-  const { data: risk_data } = await supabase
-    .from('Propiedades en Orlando')
+  const { data: risk_data, error: riskError } = await supabase
+    .from('"Propiedades en Orlando"')
     .select('combined_score')
     .not('combined_score', 'is', null)
+
+  if (riskError) {
+    console.error('Error fetching risk data:', riskError)
+    throw riskError
+  }
 
   const high_risk = risk_data?.filter(p => p.combined_score >= 7).length || 0
   const medium_risk = risk_data?.filter(p => p.combined_score >= 4 && p.combined_score < 7).length || 0
@@ -46,10 +61,14 @@ const fetchPropertyStats = async (): Promise<PropertyStats> => {
 }
 
 export const Dashboard = () => {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading, error } = useQuery({
     queryKey: ['property-stats'],
     queryFn: fetchPropertyStats
   })
+
+  if (error) {
+    console.error('Error loading dashboard stats:', error)
+  }
 
   return (
     <DashboardSidebar>
@@ -164,5 +183,4 @@ export const Dashboard = () => {
         </div>
       </div>
     </DashboardSidebar>
-  )
-}
+  </div>
