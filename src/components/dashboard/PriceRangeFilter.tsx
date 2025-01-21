@@ -19,11 +19,11 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
 
   return (
     <Card className="shadow-sm">
-      <CardContent className="pt-4">
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="minPrice" className="text-xs">Mínimo</Label>
+      <CardContent className="pt-2">
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label htmlFor="minPrice" className="text-[10px]">Mínimo</Label>
               <Input
                 id="minPrice"
                 type="number"
@@ -32,11 +32,11 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
                 min={250000}
                 max={priceRange[1]}
                 step={10000}
-                className="h-8 text-sm"
+                className="h-6 text-xs"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="maxPrice" className="text-xs">Máximo</Label>
+            <div className="space-y-1">
+              <Label htmlFor="maxPrice" className="text-[10px]">Máximo</Label>
               <Input
                 id="maxPrice"
                 type="number"
@@ -45,11 +45,11 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
                 min={priceRange[0]}
                 max={900000}
                 step={10000}
-                className="h-8 text-sm"
+                className="h-6 text-xs"
               />
             </div>
           </div>
-          <div className="pt-2">
+          <div className="pt-1">
             <Slider
               min={250000}
               max={900000}
@@ -60,7 +60,7 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
               defaultValue={[priceRange[0], priceRange[1]]}
               thumbs={2}
             />
-            <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+            <div className="flex justify-between mt-0.5 text-[10px] text-muted-foreground">
               <span>{formatPrice(250000)}</span>
               <span>{formatPrice(900000)}</span>
             </div>

@@ -58,46 +58,46 @@ export const SummaryCards = () => {
   });
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
       <Card className="shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Cantidad de potenciales leads</CardTitle>
+        <CardHeader className="pb-1">
+          <CardTitle className="text-xs">Cantidad de potenciales leads</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold">
+          <p className="text-base font-bold">
             {isLoadingLeads ? "Cargando..." : leadsCount}
           </p>
         </CardContent>
       </Card>
 
       <Card className="shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Códigos Zips mapeados</CardTitle>
+        <CardHeader className="pb-1">
+          <CardTitle className="text-xs">Códigos Zips mapeados</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold">
+          <p className="text-base font-bold">
             {isLoadingZips ? "Cargando..." : uniqueZipCount}
           </p>
         </CardContent>
       </Card>
 
       <Card className="shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Score de propiedades</CardTitle>
+        <CardHeader className="pb-1">
+          <CardTitle className="text-xs">Score de propiedades</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           {isLoadingScores ? (
-            <p className="text-center text-sm">Cargando...</p>
+            <p className="text-center text-xs">Cargando...</p>
           ) : (
             scoreDistribution?.map((item) => (
-              <div key={item.score} className="space-y-1">
-                <div className="flex justify-between text-xs">
+              <div key={item.score} className="space-y-0.5">
+                <div className="flex justify-between text-[10px]">
                   <span>{item.score}</span>
                   <span>{item.percentage}%</span>
                 </div>
                 <Progress 
                   value={item.percentage} 
-                  className={cn("h-1.5")}
+                  className={cn("h-1")}
                   indicatorClassName={cn("transition-all", {
                     "bg-[#ea384c]": item.score === "Score 1",
                     "bg-[#F97316]": item.score === "Score 2",
