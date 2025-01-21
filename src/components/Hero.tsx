@@ -27,7 +27,7 @@ export const Hero = () => {
           className="bg-accent hover:bg-accent/90 text-accent-foreground"
           onClick={() => navigate("/contact")}
         >
-          Solicitar Presupuesto
+          Contáctanos
         </Button>
       </div>
     </div>

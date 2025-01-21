@@ -37,7 +37,7 @@ export const Navbar = () => {
             className="text-primary hover:text-primary/80"
             onClick={() => navigate("/login")}
           >
-            {user ? "Dashboard" : "Iniciar Sesión"}
+            {user ? "Dashboard" : "Iniciar sesión"}
           </Button>
         </div>
       </div>
