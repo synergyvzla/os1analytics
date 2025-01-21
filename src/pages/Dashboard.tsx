@@ -4,15 +4,22 @@ import { supabase } from "@/integrations/supabase/client"
 import { useQuery } from "@tanstack/react-query"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
-import { useState, useMemo } from 'react';
+import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Check, ChevronDown, ChevronUp, Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu"
 
 const mapContainerStyle = {
   width: '100%',
@@ -55,6 +62,20 @@ export const Dashboard = () => {
   const [mapZoom, setMapZoom] = useState(9);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar el dropdown cuando se hace clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const { data: leadsCount, isLoading: isLoadingLeads } = useQuery({
     queryKey: ['propertiesCount'],
@@ -168,7 +189,9 @@ export const Dashboard = () => {
 
   const handleZipSelect = (zip: string) => {
     setSelectedZips(prev => {
-      if (zip === 'all') return [];
+      if (zip === 'all') {
+        return prev.length === availableZipCodes?.length ? [] : (availableZipCodes?.map(z => z.toString()) || []);
+      }
       if (prev.includes(zip)) {
         return prev.filter(z => z !== zip);
       }
@@ -176,12 +199,8 @@ export const Dashboard = () => {
     });
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedZips(availableZipCodes?.map(zip => zip.toString()) || []);
-    } else {
-      setSelectedZips([]);
-    }
+  const removeZip = (zip: string) => {
+    setSelectedZips(prev => prev.filter(z => z !== zip));
   };
 
   return (
@@ -237,92 +256,82 @@ export const Dashboard = () => {
 
           <h2 className="text-2xl font-semibold">Segmentación de Propiedades</h2>
           
-          <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Filtros de búsqueda</h3>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-9 p-0">
-                  {isOpen ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </Button>
-              </CollapsibleTrigger>
-            </div>
-            
-            <CollapsibleContent className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      Seleccione uno o más códigos postales:
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="px-4 pb-3">
-                      <div className="relative">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Buscar código postal..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-8"
-                        />
-                      </div>
-                    </div>
-                    <ScrollArea className="h-[200px] px-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="select-all"
-                            checked={selectedZips.length === availableZipCodes?.length}
-                            onCheckedChange={handleSelectAll}
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle>Filtros de búsqueda</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="relative" ref={dropdownRef}>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {selectedZips.map((zip) => (
+                      <Badge
+                        key={zip}
+                        variant="secondary"
+                        className="flex items-center gap-1 px-3 py-1"
+                      >
+                        {zip}
+                        <button
+                          onClick={() => removeZip(zip)}
+                          className="ml-1 hover:bg-secondary-foreground/10 rounded-full"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      >
+                        <span>Seleccionar códigos postales</span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      className="w-[var(--radix-dropdown-menu-trigger-width)] p-0"
+                      align="start"
+                    >
+                      <div className="p-2">
+                        <div className="relative">
+                          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Buscar código postal..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-8"
                           />
-                          <label
-                            htmlFor="select-all"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            Seleccionar todos
-                          </label>
                         </div>
-                        <Separator className="my-2" />
-                        {filteredZipCodes.map((zip) => (
-                          <div key={zip} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`zip-${zip}`}
-                              checked={selectedZips.includes(zip.toString())}
-                              onCheckedChange={() => handleZipSelect(zip.toString())}
-                            />
-                            <label
-                              htmlFor={`zip-${zip}`}
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              {zip}
-                            </label>
-                          </div>
-                        ))}
                       </div>
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      Seleccione uno o más scores de techo:
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {/* Score selector implementation will go here */}
-                    <div className="text-sm text-muted-foreground">
-                      Próximamente...
-                    </div>
-                  </CardContent>
-                </Card>
+                      <DropdownMenuSeparator />
+                      <ScrollArea className="h-[200px]">
+                        <DropdownMenuCheckboxItem
+                          checked={selectedZips.length === availableZipCodes?.length}
+                          onCheckedChange={() => handleZipSelect('all')}
+                        >
+                          Seleccionar todos
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuSeparator />
+                        {filteredZipCodes.map((zip) => (
+                          <DropdownMenuCheckboxItem
+                            key={zip}
+                            checked={selectedZips.includes(zip.toString())}
+                            onCheckedChange={() => handleZipSelect(zip.toString())}
+                          >
+                            {zip}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </ScrollArea>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
+            </CardContent>
+          </Card>
 
           <div className="mt-4">
             <LoadScript googleMapsApiKey="AIzaSyC2q-Pl2npZHP0T33HBbZpstTJE3UDWPog">
