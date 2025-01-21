@@ -13,11 +13,8 @@ export const usePropertyFilters = () => {
   const [isScoreDropdownOpen, setIsScoreDropdownOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState({ lat: 28.5383, lng: -81.3792 });
   const [mapZoom, setMapZoom] = useState(9);
-  const [priceRange, setPriceRange] = useState([250000, 900000]);
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(2024, 0, 1),
-    to: new Date(2025, 0, 17),
-  });
+  const [priceRange, setPriceRange] = useState<number[]>([0, 10000000]); // Ampliamos el rango inicial
+  const [date, setDate] = useState<DateRange | undefined>(undefined); // Removemos la fecha inicial
 
   const { data: totalProperties } = useQuery({
     queryKey: ['totalProperties'],
@@ -72,7 +69,8 @@ export const usePropertyFilters = () => {
         .from('Propiedades')
         .select('*');
       
-      if (priceRange) {
+      // Solo aplicamos filtros si han sido seleccionados explícitamente
+      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
           .lte('valuation_estimatedValue', priceRange[1]);
