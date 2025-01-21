@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { DateRange } from "react-day-picker";
 import { toast } from "@/hooks/use-toast";
 
 export const usePropertyFilters = () => {
@@ -13,17 +12,15 @@ export const usePropertyFilters = () => {
   const [isScoreDropdownOpen, setIsScoreDropdownOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState({ lat: 28.5383, lng: -81.3792 });
   const [mapZoom, setMapZoom] = useState(9);
-  const [priceRange, setPriceRange] = useState<number[]>([0, 10000000]); // Ampliamos el rango inicial
-  const [date, setDate] = useState<DateRange | undefined>(undefined); // Removemos la fecha inicial
+  const [priceRange, setPriceRange] = useState<number[]>([0, 10000000]);
 
   const { data: totalProperties } = useQuery({
-    queryKey: ['totalProperties', priceRange, selectedZips, selectedScores, date],
+    queryKey: ['totalProperties', priceRange, selectedZips, selectedScores],
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
         .select('*', { count: 'exact' });
       
-      // Solo aplicamos filtros si han sido seleccionados explícitamente
       if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
@@ -36,14 +33,6 @@ export const usePropertyFilters = () => {
 
       if (selectedScores.length > 0) {
         query = query.in('combined_score', selectedScores.map(score => parseInt(score, 10)));
-      }
-
-      if (date?.from) {
-        query = query.gte('top_gust_1_date', date.from.toISOString());
-      }
-
-      if (date?.to) {
-        query = query.lte('top_gust_1_date', date.to.toISOString());
       }
       
       const { count, error } = await query;
@@ -88,13 +77,12 @@ export const usePropertyFilters = () => {
   });
 
   const { data: properties } = useQuery({
-    queryKey: ['properties', selectedZips, selectedScores, date, priceRange],
+    queryKey: ['properties', selectedZips, selectedScores, priceRange],
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
         .select('*');
       
-      // Solo aplicamos filtros si han sido seleccionados explícitamente
       if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
@@ -108,21 +96,13 @@ export const usePropertyFilters = () => {
       if (selectedScores.length > 0) {
         query = query.in('combined_score', selectedScores.map(score => parseInt(score, 10)));
       }
-
-      if (date?.from) {
-        query = query.gte('top_gust_1_date', date.from.toISOString());
-      }
-
-      if (date?.to) {
-        query = query.lte('top_gust_1_date', date.to.toISOString());
-      }
       
       const { data, error } = await query;
       if (error) throw error;
 
       if (data && data.length === 0) {
         toast({
-          description: "En ese rango de fecha no hay información disponible",
+          description: "No hay propiedades que cumplan con los filtros seleccionados",
           duration: 5000,
         });
       }
@@ -194,8 +174,6 @@ export const usePropertyFilters = () => {
     handleScoreSelect,
     removeZip,
     removeScore,
-    date,
-    setDate,
     priceRange,
     setPriceRange,
   };

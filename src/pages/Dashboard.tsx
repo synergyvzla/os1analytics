@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { ZipCodeFilter } from "@/components/dashboard/ZipCodeFilter";
 import { ScoreFilter } from "@/components/dashboard/ScoreFilter";
-import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { PriceRangeFilter } from "@/components/dashboard/PriceRangeFilter";
 import { SummaryCards } from "@/components/dashboard/SummaryCards";
 import { PropertiesMap } from "@/components/dashboard/PropertiesMap";
@@ -30,13 +29,11 @@ export const Dashboard = () => {
     handleScoreSelect,
     removeZip,
     removeScore,
-    date,
-    setDate,
     priceRange,
     setPriceRange,
   } = usePropertyFilters();
 
-  const displayCount = (selectedZips.length > 0 || selectedScores.length > 0 || date?.from || date?.to) 
+  const displayCount = (selectedZips.length > 0 || selectedScores.length > 0) 
     ? properties?.length || 0 
     : totalProperties || 0;
 
@@ -88,10 +85,6 @@ export const Dashboard = () => {
                     priceRange={priceRange}
                     setPriceRange={setPriceRange}
                   />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Rango de Fechas para Ráfagas de Viento</h3>
-                  <DateRangeFilter date={date} setDate={setDate} />
                 </div>
               </div>
             </CardContent>
