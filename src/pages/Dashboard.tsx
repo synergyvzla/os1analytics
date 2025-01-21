@@ -47,7 +47,7 @@ export const Dashboard = () => {
               <CardTitle>Filtros de búsqueda</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="flex flex-col gap-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Códigos Postales</h3>
                   <ZipCodeFilter
