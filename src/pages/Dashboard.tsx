@@ -21,7 +21,7 @@ const mapContainerStyle = {
 };
 
 const center = {
-  lat: 28.5383, // Orlando, FL approximate center
+  lat: 28.5383,
   lng: -81.3792,
 };
 
@@ -118,7 +118,8 @@ export const Dashboard = () => {
         .select('address_latitude, address_longitude, address_formattedStreet');
       
       if (selectedZip) {
-        query = query.eq('address_zip', selectedZip);
+        // Convert selectedZip to number before using it in the query
+        query = query.eq('address_zip', parseInt(selectedZip, 10));
       }
       
       const { data, error } = await query;
