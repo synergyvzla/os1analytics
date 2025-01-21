@@ -47,7 +47,7 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
               />
             </div>
           </div>
-          <div className="pt-4">
+          <div className="pt-4 relative">
             <Slider
               min={250000}
               max={2500000}
@@ -60,6 +60,7 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
               <span>{formatPrice(250000)}</span>
               <span>{formatPrice(2500000)}</span>
             </div>
+            <div className="absolute right-0 top-[2px] w-4 h-4 rounded-full bg-white border-2 border-primary" />
           </div>
         </div>
       </CardContent>

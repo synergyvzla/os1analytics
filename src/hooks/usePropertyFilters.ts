@@ -82,25 +82,34 @@ export const usePropertyFilters = () => {
       if (error) throw error;
 
       if (data && data.length === 0) {
-        const { data: dateRangeData } = await supabase
+        // Get min and max valuation values
+        const { data: minData } = await supabase
           .from('Propiedades')
-          .select('top_gust_1_date')
-          .order('top_gust_1_date', { ascending: true })
+          .select('valuation_estimatedValue')
+          .order('valuation_estimatedValue', { ascending: true })
           .limit(1);
 
-        const { data: maxDateData } = await supabase
+        const { data: maxData } = await supabase
           .from('Propiedades')
-          .select('top_gust_1_date')
-          .order('top_gust_1_date', { ascending: false })
+          .select('valuation_estimatedValue')
+          .order('valuation_estimatedValue', { ascending: false })
           .limit(1);
 
-        if (dateRangeData?.[0] && maxDateData?.[0]) {
-          const minDate = new Date(dateRangeData[0].top_gust_1_date);
-          const maxDate = new Date(maxDateData[0].top_gust_1_date);
+        if (minData?.[0] && maxData?.[0]) {
+          const minValue = minData[0].valuation_estimatedValue;
+          const maxValue = maxData[0].valuation_estimatedValue;
           
+          const formatPrice = (value: number) => {
+            return new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              maximumFractionDigits: 0,
+            }).format(value);
+          };
+
           toast({
             title: "No hay propiedades en el rango seleccionado",
-            description: `Prueba con fechas entre ${minDate.toLocaleDateString('es-ES')} y ${maxDate.toLocaleDateString('es-ES')}`,
+            description: `Prueba con valores entre ${formatPrice(minValue)} y ${formatPrice(maxValue)}`,
             duration: 5000,
           });
         }
