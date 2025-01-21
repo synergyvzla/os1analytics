@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
+import { DateRange } from "react-day-picker";
+import { addDays } from "date-fns";
 
 export const usePropertyFilters = () => {
   const [selectedZips, setSelectedZips] = useState<string[]>([]);
@@ -11,6 +13,10 @@ export const usePropertyFilters = () => {
   const [isScoreDropdownOpen, setIsScoreDropdownOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState({ lat: 28.5383, lng: -81.3792 });
   const [mapZoom, setMapZoom] = useState(9);
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(2024, 0, 1), // January 1, 2024
+    to: new Date(2025, 0, 17), // January 17, 2025
+  });
 
   const { data: availableZipCodes } = useQuery({
     queryKey: ['availableZipCodes'],
@@ -47,11 +53,11 @@ export const usePropertyFilters = () => {
   });
 
   const { data: properties } = useQuery({
-    queryKey: ['properties', selectedZips, selectedScores],
+    queryKey: ['properties', selectedZips, selectedScores, date],
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
-        .select('address_latitude, address_longitude, address_formattedStreet');
+        .select('*');
       
       if (selectedZips.length > 0) {
         query = query.in('address_zip', selectedZips.map(zip => parseInt(zip, 10)));
@@ -59,6 +65,14 @@ export const usePropertyFilters = () => {
 
       if (selectedScores.length > 0) {
         query = query.in('combined_score', selectedScores.map(score => parseInt(score, 10)));
+      }
+
+      if (date?.from) {
+        query = query.gte('top_gust_1_date', date.from.toISOString());
+      }
+
+      if (date?.to) {
+        query = query.lte('top_gust_1_date', date.to.toISOString());
       }
       
       const { data, error } = await query;
@@ -130,5 +144,7 @@ export const usePropertyFilters = () => {
     handleScoreSelect,
     removeZip,
     removeScore,
+    date,
+    setDate,
   };
 };

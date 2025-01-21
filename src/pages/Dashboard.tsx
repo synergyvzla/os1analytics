@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { ZipCodeFilter } from "@/components/dashboard/ZipCodeFilter";
 import { ScoreFilter } from "@/components/dashboard/ScoreFilter";
+import { DateRangeFilter } from "@/components/dashboard/DateRangeFilter";
 import { SummaryCards } from "@/components/dashboard/SummaryCards";
 import { PropertiesMap } from "@/components/dashboard/PropertiesMap";
 import { usePropertyFilters } from "@/hooks/usePropertyFilters";
@@ -27,6 +28,8 @@ export const Dashboard = () => {
     handleScoreSelect,
     removeZip,
     removeScore,
+    date,
+    setDate,
   } = usePropertyFilters();
 
   return (
@@ -44,7 +47,7 @@ export const Dashboard = () => {
               <CardTitle>Filtros de búsqueda</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Códigos Postales</h3>
                   <ZipCodeFilter
@@ -70,6 +73,10 @@ export const Dashboard = () => {
                     isDropdownOpen={isScoreDropdownOpen}
                     setIsDropdownOpen={setIsScoreDropdownOpen}
                   />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Rango de Fechas para Ráfagas de Viento</h3>
+                  <DateRangeFilter date={date} setDate={setDate} />
                 </div>
               </div>
             </CardContent>
