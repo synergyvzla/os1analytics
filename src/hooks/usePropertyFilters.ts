@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
 import { toast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 export const usePropertyFilters = () => {
   const [selectedZips, setSelectedZips] = useState<string[]>([]);
@@ -13,7 +15,7 @@ export const usePropertyFilters = () => {
   const [isScoreDropdownOpen, setIsScoreDropdownOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState({ lat: 28.5383, lng: -81.3792 });
   const [mapZoom, setMapZoom] = useState(9);
-  const [priceRange, setPriceRange] = useState([250000, 2500000]);
+  const [priceRange, setPriceRange] = useState([250000, 900000]);
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(2024, 0, 1),
     to: new Date(2025, 0, 17),
@@ -95,9 +97,18 @@ export const usePropertyFilters = () => {
           .order('valuation_estimatedValue', { ascending: false })
           .limit(1);
 
-        if (minData?.[0] && maxData?.[0]) {
+        // Get min and max dates
+        const { data: dateData } = await supabase
+          .from('Propiedades')
+          .select('top_gust_1_date')
+          .not('top_gust_1_date', 'is', null)
+          .order('top_gust_1_date', { ascending: true });
+
+        if (minData?.[0] && maxData?.[0] && dateData?.length) {
           const minValue = minData[0].valuation_estimatedValue;
           const maxValue = maxData[0].valuation_estimatedValue;
+          const minDate = new Date(dateData[0].top_gust_1_date);
+          const maxDate = new Date(dateData[dateData.length - 1].top_gust_1_date);
           
           const formatPrice = (value: number) => {
             return new Intl.NumberFormat('en-US', {
@@ -109,7 +120,7 @@ export const usePropertyFilters = () => {
 
           toast({
             title: "No hay propiedades en el rango seleccionado",
-            description: `Prueba con valores entre ${formatPrice(minValue)} y ${formatPrice(maxValue)}`,
+            description: `Prueba con valores entre ${formatPrice(minValue)} y ${formatPrice(maxValue)}\nFechas disponibles: ${format(minDate, "dd MMM, yyyy", { locale: es })} - ${format(maxDate, "dd MMM, yyyy", { locale: es })}`,
             duration: 5000,
           });
         }
