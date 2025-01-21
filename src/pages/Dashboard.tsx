@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardSidebar } from "@/components/DashboardSidebar"
 import { supabase } from "@/integrations/supabase/client"
 import { useQuery } from "@tanstack/react-query"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
 
 export const Dashboard = () => {
   const { data: leadsCount, isLoading: isLoadingLeads } = useQuery({
@@ -35,9 +37,36 @@ export const Dashboard = () => {
         throw error;
       }
 
-      // Get unique zip codes using Set
       const uniqueZips = new Set(data.map(item => item.address_zip));
       return uniqueZips.size;
+    }
+  });
+
+  const { data: scoreDistribution, isLoading: isLoadingScores } = useQuery({
+    queryKey: ['scoreDistribution'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('Propiedades')
+        .select('combined_score');
+
+      if (error) {
+        console.error('Error fetching scores:', error);
+        throw error;
+      }
+
+      // Count occurrences of each score
+      const distribution = data.reduce((acc: Record<number, number>, curr) => {
+        if (curr.combined_score) {
+          acc[curr.combined_score] = (acc[curr.combined_score] || 0) + 1;
+        }
+        return acc;
+      }, {});
+
+      // Convert to array format for chart
+      return Object.entries(distribution).map(([score, count]) => ({
+        score: `Score ${score}`,
+        count: count
+      }));
     }
   });
 
@@ -69,9 +98,43 @@ export const Dashboard = () => {
                 </p>
               </CardContent>
             </Card>
+
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>Score de propiedades</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[300px]">
+                {isLoadingScores ? (
+                  <p className="text-center">Cargando...</p>
+                ) : (
+                  <ChartContainer
+                    className="w-full h-full"
+                    config={{
+                      score: {
+                        theme: {
+                          light: "#1e3a8a",
+                          dark: "#3b82f6"
+                        }
+                      }
+                    }}
+                  >
+                    <BarChart data={scoreDistribution}>
+                      <XAxis dataKey="score" />
+                      <YAxis />
+                      <ChartTooltip />
+                      <Bar
+                        dataKey="count"
+                        fill="var(--color-score)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
     </DashboardSidebar>
-  )
-}
+  );
+};
