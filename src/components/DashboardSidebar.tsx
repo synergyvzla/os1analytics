@@ -1,4 +1,4 @@
-import { LogOut, User, LayoutDashboard, Users, FileText } from "lucide-react"
+import { LogOut, User, LayoutDashboard, Users, FileText, Building } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import { supabase } from "@/integrations/supabase/client"
@@ -51,7 +51,15 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen w-full">
         <Sidebar>
           <SidebarHeader className="p-4">
-            <h2 className="text-lg font-semibold">Well Done Mitigation</h2>
+            <div className="flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+                <Building className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Well Done Mitigation</h2>
+                <p className="text-sm text-muted-foreground">Enterprise</p>
+              </div>
+            </div>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
