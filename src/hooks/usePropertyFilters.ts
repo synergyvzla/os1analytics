@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
-import { addDays } from "date-fns";
+import { toast } from "@/hooks/use-toast";
 
 export const usePropertyFilters = () => {
   const [selectedZips, setSelectedZips] = useState<string[]>([]);
@@ -14,8 +14,8 @@ export const usePropertyFilters = () => {
   const [mapCenter, setMapCenter] = useState({ lat: 28.5383, lng: -81.3792 });
   const [mapZoom, setMapZoom] = useState(9);
   const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(2024, 0, 1), // January 1, 2024
-    to: new Date(2025, 0, 17), // January 17, 2025
+    from: new Date(2024, 0, 1),
+    to: new Date(2025, 0, 17),
   });
 
   const { data: availableZipCodes } = useQuery({
@@ -77,6 +77,32 @@ export const usePropertyFilters = () => {
       
       const { data, error } = await query;
       if (error) throw error;
+
+      if (data && data.length === 0) {
+        // Si no hay datos, buscar el rango de fechas disponible
+        const { data: dateRangeData } = await supabase
+          .from('Propiedades')
+          .select('top_gust_1_date')
+          .order('top_gust_1_date', { ascending: true })
+          .limit(1);
+
+        const { data: maxDateData } = await supabase
+          .from('Propiedades')
+          .select('top_gust_1_date')
+          .order('top_gust_1_date', { ascending: false })
+          .limit(1);
+
+        if (dateRangeData?.[0] && maxDateData?.[0]) {
+          const minDate = new Date(dateRangeData[0].top_gust_1_date);
+          const maxDate = new Date(maxDateData[0].top_gust_1_date);
+          
+          toast({
+            title: "No hay propiedades en el rango seleccionado",
+            description: `Prueba con fechas entre ${minDate.toLocaleDateString('es-ES')} y ${maxDate.toLocaleDateString('es-ES')}`,
+            duration: 5000,
+          });
+        }
+      }
 
       if (data && data.length > 0) {
         const avgLat = data.reduce((sum, prop) => sum + (prop.address_latitude || 0), 0) / data.length;
