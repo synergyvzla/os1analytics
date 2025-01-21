@@ -20,6 +20,7 @@ const mapContainerStyle = {
   borderRadius: '8px'
 };
 
+// Centrado en Orlando, FL
 const center = {
   lat: 28.5383,
   lng: -81.3792,
@@ -211,11 +212,16 @@ export const Dashboard = () => {
             </Select>
           </div>
 
-          <LoadScript googleMapsApiKey={process.env.GOOGLE_MAPS_API_KEY || ''}>
+          <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
             <GoogleMap
               mapContainerStyle={mapContainerStyle}
               center={center}
               zoom={11}
+              options={{
+                mapTypeControl: true,
+                streetViewControl: true,
+                fullscreenControl: true,
+              }}
             >
               {markers.map((marker, index) => (
                 <Marker
