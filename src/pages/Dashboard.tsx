@@ -2,8 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DashboardSidebar } from "@/components/DashboardSidebar"
 import { supabase } from "@/integrations/supabase/client"
 import { useQuery } from "@tanstack/react-query"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
+import { Progress } from "@/components/ui/progress"
 
 export const Dashboard = () => {
   const { data: leadsCount, isLoading: isLoadingLeads } = useQuery({
@@ -62,10 +61,12 @@ export const Dashboard = () => {
         return acc;
       }, {});
 
-      // Convert to array format for chart
+      // Calculate percentages
+      const total = Object.values(distribution).reduce((sum, count) => sum + count, 0);
       return Object.entries(distribution).map(([score, count]) => ({
         score: `Score ${score}`,
-        count: count
+        count,
+        percentage: Math.round((count / total) * 100)
       }));
     }
   });
@@ -76,7 +77,7 @@ export const Dashboard = () => {
         <div className="container mx-auto">
           <h1 className="text-3xl font-bold mb-8">Panel de Control</h1>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Cantidad de potenciales leads</CardTitle>
@@ -99,36 +100,23 @@ export const Dashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="md:col-span-2">
+            <Card>
               <CardHeader>
                 <CardTitle>Score de propiedades</CardTitle>
               </CardHeader>
-              <CardContent className="h-[300px]">
+              <CardContent className="space-y-4">
                 {isLoadingScores ? (
                   <p className="text-center">Cargando...</p>
                 ) : (
-                  <ChartContainer
-                    className="w-full h-full"
-                    config={{
-                      score: {
-                        theme: {
-                          light: "#1e3a8a",
-                          dark: "#3b82f6"
-                        }
-                      }
-                    }}
-                  >
-                    <BarChart data={scoreDistribution}>
-                      <XAxis dataKey="score" />
-                      <YAxis />
-                      <ChartTooltip />
-                      <Bar
-                        dataKey="count"
-                        fill="var(--color-score)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ChartContainer>
+                  scoreDistribution?.map((item) => (
+                    <div key={item.score} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>{item.score}</span>
+                        <span>{item.percentage}%</span>
+                      </div>
+                      <Progress value={item.percentage} className="h-2" />
+                    </div>
+                  ))
                 )}
               </CardContent>
             </Card>
