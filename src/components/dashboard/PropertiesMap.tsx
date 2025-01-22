@@ -1,5 +1,5 @@
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
-import { useMemo } from 'react';
+import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import { useMemo, useState } from 'react';
 
 const mapContainerStyle = {
   width: '100%',
@@ -40,7 +40,12 @@ interface Property {
   address_latitude: number | null;
   address_longitude: number | null;
   address_formattedStreet: string | null;
+  address_street: string | null;
+  owner_fullName: string | null;
+  valuation_estimatedValue: number | null;
   combined_score: number | null;
+  count_gusts: number | null;
+  top_gust_1: number | null;
 }
 
 interface PropertiesMapProps {
@@ -87,15 +92,27 @@ const Legend = () => (
   </div>
 );
 
+const formatCurrency = (value: number | null) => {
+  if (!value) return '$0';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0
+  }).format(value);
+};
+
 export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) => {
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+
   const markers = useMemo(() => {
-    return properties?.map((property, index) => ({
+    return properties?.map((property) => ({
       position: {
         lat: property.address_latitude || 0,
         lng: property.address_longitude || 0,
       },
-      title: property.address_formattedStreet || `Property ${index + 1}`,
+      title: property.address_formattedStreet || '',
       icon: getMarkerIcon(property.combined_score),
+      property: property,
     })) || [];
   }, [properties]);
 
@@ -114,8 +131,34 @@ export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) 
               position={marker.position}
               title={marker.title}
               icon={marker.icon}
+              onClick={() => setSelectedProperty(marker.property)}
             />
           ))}
+          
+          {selectedProperty && (
+            <InfoWindow
+              position={{
+                lat: selectedProperty.address_latitude || 0,
+                lng: selectedProperty.address_longitude || 0
+              }}
+              onCloseClick={() => setSelectedProperty(null)}
+            >
+              <div className="p-2 max-w-xs">
+                <h3 className="font-semibold text-sm bg-blue-100 p-1 rounded mb-2">
+                  {selectedProperty.owner_fullName}
+                </h3>
+                <div className="space-y-1 text-sm">
+                  <p>{selectedProperty.address_street}</p>
+                  <p>Valor estimado: {formatCurrency(selectedProperty.valuation_estimatedValue)}</p>
+                  <p>Puntuación de techo: {selectedProperty.combined_score}</p>
+                  <p className="text-xs text-gray-600">
+                    Crítico: {selectedProperty.count_gusts} ráfagas intensas, 
+                    máxima de {selectedProperty.top_gust_1} mph.
+                  </p>
+                </div>
+              </div>
+            </InfoWindow>
+          )}
         </GoogleMap>
       </LoadScript>
       <Legend />
