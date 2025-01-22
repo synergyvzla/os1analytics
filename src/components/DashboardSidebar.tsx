@@ -25,12 +25,23 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         setUserEmail(user.email)
+        // Get profile data including avatar
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', user.id)
+          .single()
+        
+        if (profile) {
+          setAvatarUrl(profile.avatar_url)
+        }
       }
     }
     getUser()
@@ -105,7 +116,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
             <DropdownMenu>
               <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-secondary">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="" />
+                  <AvatarImage src={avatarUrl || ""} />
                   <AvatarFallback>
                     {userEmail?.charAt(0).toUpperCase()}
                   </AvatarFallback>
