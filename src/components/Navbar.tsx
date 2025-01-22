@@ -25,10 +25,10 @@ export const Navbar = () => {
   }, []);
 
   return (
-    <nav className="fixed w-full bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
+    <nav className="fixed w-full bg-white/95 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm">
       <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-3 group">
+          <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => navigate("/")}>
             <img 
               src="/signal.png" 
               alt="Logo" 
@@ -45,7 +45,7 @@ export const Navbar = () => {
           </div>
           <Button
             variant="ghost"
-            className="text-[#0EA5E9] hover:text-[#0EA5E9]/90 hover:bg-blue-50 transition-colors duration-300 font-medium"
+            className="text-[#0EA5E9] hover:text-white hover:bg-[#0EA5E9] transition-all duration-300 font-medium px-6 py-2 rounded-full"
             onClick={() => navigate("/login")}
           >
             {user ? "Dashboard" : "Iniciar sesión"}
