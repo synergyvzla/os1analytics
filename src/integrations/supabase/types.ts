@@ -55,6 +55,7 @@ export type Database = {
           combined_score: number | null
           count_gusts: number | null
           general_propertyTypeDetail: string | null
+          "Google Maps": string | null
           max_gust: number | null
           mean_gust: number | null
           owner_fullName: string | null
@@ -97,6 +98,7 @@ export type Database = {
           combined_score?: number | null
           count_gusts?: number | null
           general_propertyTypeDetail?: string | null
+          "Google Maps"?: string | null
           max_gust?: number | null
           mean_gust?: number | null
           owner_fullName?: string | null
@@ -139,6 +141,7 @@ export type Database = {
           combined_score?: number | null
           count_gusts?: number | null
           general_propertyTypeDetail?: string | null
+          "Google Maps"?: string | null
           max_gust?: number | null
           mean_gust?: number | null
           owner_fullName?: string | null

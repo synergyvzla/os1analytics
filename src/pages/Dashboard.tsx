@@ -128,6 +128,7 @@ export const Dashboard = () => {
                     <TableHead>Valor Estimado</TableHead>
                     <TableHead>Años de residencia</TableHead>
                     <TableHead>Top 5 Ráfagas</TableHead>
+                    <TableHead>Google Maps</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -139,6 +140,18 @@ export const Dashboard = () => {
                       <TableCell>{formatCurrency(property.valuation_estimatedValue)}</TableCell>
                       <TableCell>{property.owner_lengthOfResidenceYears}</TableCell>
                       <TableCell>{formatTopGusts(property)}</TableCell>
+                      <TableCell>
+                        {property['Google Maps'] && (
+                          <a 
+                            href={property['Google Maps']} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline"
+                          >
+                            Ver en Maps
+                          </a>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
