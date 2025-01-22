@@ -60,7 +60,7 @@ export const Navbar = () => {
       if (error) throw error;
 
       toast({
-        title: "¡Acceso solicitado!",
+        title: "¡Solicitud Enviada!",
         description: "Te contactaremos pronto con tus credenciales de acceso.",
       });
 
