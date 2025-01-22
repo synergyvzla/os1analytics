@@ -26,14 +26,14 @@ export function DataTable<TData, TValue>({
   return (
     <div className="w-full border rounded-lg overflow-hidden">
       <div className="overflow-auto" style={{ maxHeight: '500px' }}>
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse text-xs">
           <thead className="bg-white" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="h-12 px-4 text-left align-middle text-sm font-medium text-gray-500 bg-gray-50 border-b"
+                    className="h-10 px-2 text-left align-middle font-medium text-gray-500 bg-gray-50 border-b"
                   >
                     {header.isPlaceholder
                       ? null
@@ -54,7 +54,7 @@ export function DataTable<TData, TValue>({
                   className="border-b hover:bg-gray-50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="p-4">
+                    <td key={cell.id} className="p-2">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
