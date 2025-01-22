@@ -6,8 +6,9 @@ import { PriceRangeFilter } from "@/components/dashboard/PriceRangeFilter";
 import { SummaryCards } from "@/components/dashboard/SummaryCards";
 import { PropertiesMap } from "@/components/dashboard/PropertiesMap";
 import { usePropertyFilters } from "@/hooks/usePropertyFilters";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { DataTable } from "@/components/dashboard/PropertiesTable";
+import { columns } from "@/components/dashboard/columns";
 
 export const Dashboard = () => {
   const {
@@ -38,27 +39,6 @@ export const Dashboard = () => {
   const displayCount = (selectedZips.length > 0 || selectedScores.length > 0) 
     ? properties?.length || 0 
     : totalProperties || 0;
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const formatTopGusts = (property: any) => {
-    const gusts = [
-      property.top_gust_1,
-      property.top_gust_2,
-      property.top_gust_3,
-      property.top_gust_4,
-      property.top_gust_5
-    ].filter(gust => gust !== null);
-
-    return `[${gusts.join(', ')}]`;
-  };
 
   return (
     <DashboardSidebar>
@@ -119,43 +99,7 @@ export const Dashboard = () => {
 
           <div className="bg-white rounded-lg shadow overflow-hidden mb-24">
             <ScrollArea className="h-[400px] w-full">
-              <Table>
-                <TableHeader className="sticky top-0 bg-white z-10 border-b shadow-md">
-                  <TableRow>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Dirección</TableHead>
-                    <TableHead>Código Postal</TableHead>
-                    <TableHead>Valor Estimado</TableHead>
-                    <TableHead>Años de residencia</TableHead>
-                    <TableHead>Top 5 Ráfagas</TableHead>
-                    <TableHead>Google Maps</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {properties?.map((property: any) => (
-                    <TableRow key={property.propertyId}>
-                      <TableCell>{property.combined_score}</TableCell>
-                      <TableCell>{property.address_street}</TableCell>
-                      <TableCell>{property.address_zip}</TableCell>
-                      <TableCell>{formatCurrency(property.valuation_estimatedValue)}</TableCell>
-                      <TableCell>{property.owner_lengthOfResidenceYears}</TableCell>
-                      <TableCell>{formatTopGusts(property)}</TableCell>
-                      <TableCell>
-                        {property['Google Maps'] && (
-                          <a 
-                            href={property['Google Maps']} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 underline"
-                          >
-                            Ver en Maps
-                          </a>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable columns={columns} data={properties || []} />
             </ScrollArea>
           </div>
 
