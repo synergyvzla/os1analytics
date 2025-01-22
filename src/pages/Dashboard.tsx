@@ -9,6 +9,7 @@ import { usePropertyFilters } from "@/hooks/usePropertyFilters";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DataTable } from "@/components/dashboard/PropertiesTable";
 import { columns } from "@/components/dashboard/columns";
+import { Separator } from "@/components/ui/separator";
 
 export const Dashboard = () => {
   const {
@@ -97,13 +98,14 @@ export const Dashboard = () => {
             Mostrando <span className="text-base text-primary">{displayCount}</span> propiedades
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden mb-12">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
             <ScrollArea className="h-[400px] w-full">
               <DataTable columns={columns} data={properties || []} />
             </ScrollArea>
           </div>
 
-          <div className="mt-16">
+          <div className="py-24">
+            <Separator className="my-8" />
             <PropertiesMap
               properties={properties}
               center={mapCenter}
