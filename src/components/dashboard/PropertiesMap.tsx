@@ -50,10 +50,9 @@ interface PropertiesMapProps {
 }
 
 const getMarkerIcon = (score: number | null) => {
-  // Define el color según el score
   let color = '#ea384c'; // Default rojo para score 1
   if (score === 2) {
-    color = '#F97316'; // Amarillo para score 2
+    color = '#F97316'; // Naranja para score 2
   } else if (score === 3) {
     color = '#008f39'; // Verde para score 3
   }
@@ -68,6 +67,26 @@ const getMarkerIcon = (score: number | null) => {
   };
 };
 
+const Legend = () => (
+  <div className="absolute bottom-4 left-4 bg-white p-4 rounded-lg shadow-md">
+    <h3 className="text-sm font-semibold mb-2">Leyenda</h3>
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 rounded-full bg-[#ea384c]" />
+        <span className="text-xs">Alto riesgo (Score 1)</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 rounded-full bg-[#F97316]" />
+        <span className="text-xs">Riesgo medio (Score 2)</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 rounded-full bg-[#008f39]" />
+        <span className="text-xs">Bajo riesgo (Score 3)</span>
+      </div>
+    </div>
+  </div>
+);
+
 export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) => {
   const markers = useMemo(() => {
     return properties?.map((property, index) => ({
@@ -81,22 +100,25 @@ export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) 
   }, [properties]);
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyC2q-Pl2npZHP0T33HBbZpstTJE3UDWPog">
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        center={center}
-        zoom={zoom}
-        options={mapOptions}
-      >
-        {markers.map((marker, index) => (
-          <Marker
-            key={index}
-            position={marker.position}
-            title={marker.title}
-            icon={marker.icon}
-          />
-        ))}
-      </GoogleMap>
-    </LoadScript>
+    <div className="relative">
+      <LoadScript googleMapsApiKey="AIzaSyC2q-Pl2npZHP0T33HBbZpstTJE3UDWPog">
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          center={center}
+          zoom={zoom}
+          options={mapOptions}
+        >
+          {markers.map((marker, index) => (
+            <Marker
+              key={index}
+              position={marker.position}
+              title={marker.title}
+              icon={marker.icon}
+            />
+          ))}
+        </GoogleMap>
+      </LoadScript>
+      <Legend />
+    </div>
   );
 };
