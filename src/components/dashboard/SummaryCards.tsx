@@ -63,8 +63,8 @@ export const SummaryCards = () => {
         <CardHeader className="pb-1">
           <CardTitle className="text-xs">Cantidad de potenciales leads</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-base font-bold">
+        <CardContent className="flex justify-center">
+          <p className="text-2xl font-bold text-primary">
             {isLoadingLeads ? "Cargando..." : leadsCount}
           </p>
         </CardContent>

@@ -59,7 +59,7 @@ const formatGustDates = (property: Property) => {
     });
   });
 
-  return dates.length > 0 ? dates.join('\n') : '-';
+  return `[${dates.join(', ')}]`;
 }
 
 export const columns: ColumnDef<Property>[] = [
@@ -92,11 +92,7 @@ export const columns: ColumnDef<Property>[] = [
   {
     id: "gust_dates",
     header: "Fechas Ráfagas",
-    cell: ({ row }) => (
-      <div className="whitespace-pre-line">
-        {formatGustDates(row.original)}
-      </div>
-    ),
+    cell: ({ row }) => formatGustDates(row.original),
   },
   {
     accessorKey: "Google Maps",
