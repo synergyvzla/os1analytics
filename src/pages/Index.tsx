@@ -2,7 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { AboutSection } from "@/components/AboutSection";
 
-const Index = () => {
+export default function Index() {
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -10,6 +10,4 @@ const Index = () => {
       <AboutSection />
     </div>
   );
-};
-
-export default Index;
+}
