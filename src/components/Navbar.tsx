@@ -30,7 +30,7 @@ export const Navbar = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <img src="/placeholder.svg" alt="Logo" className="h-8 w-8" />
-            <span className="text-primary font-bold text-xl">Orlando Roofing</span>
+            <span className="text-primary font-bold text-xl">Signal Roofing</span>
           </div>
           <Button
             variant="ghost"
