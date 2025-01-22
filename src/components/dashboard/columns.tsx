@@ -13,6 +13,11 @@ export type Property = {
   top_gust_3?: number
   top_gust_4?: number
   top_gust_5?: number
+  top_gust_1_date?: string
+  top_gust_2_date?: string
+  top_gust_3_date?: string
+  top_gust_4_date?: string
+  top_gust_5_date?: string
   'Google Maps'?: string
 }
 
@@ -35,6 +40,26 @@ const formatTopGusts = (property: Property) => {
   ].filter(gust => gust !== undefined)
 
   return `[${gusts.join(', ')}]`
+}
+
+const formatGustDates = (property: Property) => {
+  const dates = [
+    property.top_gust_1_date,
+    property.top_gust_2_date,
+    property.top_gust_3_date,
+    property.top_gust_4_date,
+    property.top_gust_5_date
+  ].filter(date => date !== undefined)
+  .map(date => {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  });
+
+  return dates.length > 0 ? dates.join('\n') : '-';
 }
 
 export const columns: ColumnDef<Property>[] = [
@@ -63,6 +88,15 @@ export const columns: ColumnDef<Property>[] = [
     id: "top_gusts",
     header: "Top 5 Ráfagas",
     cell: ({ row }) => formatTopGusts(row.original),
+  },
+  {
+    id: "gust_dates",
+    header: "Fechas Ráfagas",
+    cell: ({ row }) => (
+      <div className="whitespace-pre-line">
+        {formatGustDates(row.original)}
+      </div>
+    ),
   },
   {
     accessorKey: "Google Maps",
