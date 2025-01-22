@@ -10,6 +10,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { DataTable } from "@/components/dashboard/PropertiesTable";
 import { columns } from "@/components/dashboard/columns";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 export const Dashboard = () => {
   const {
@@ -40,6 +42,26 @@ export const Dashboard = () => {
   const displayCount = (selectedZips.length > 0 || selectedScores.length > 0) 
     ? properties?.length || 0 
     : totalProperties || 0;
+
+  const handleDownload = () => {
+    if (!properties || properties.length === 0) return;
+    
+    // Convert properties to CSV
+    const headers = Object.keys(properties[0]).join(',');
+    const rows = properties.map(prop => Object.values(prop).join(','));
+    const csv = [headers, ...rows].join('\n');
+    
+    // Create and trigger download
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'propiedades.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
 
   return (
     <DashboardSidebar>
@@ -102,6 +124,16 @@ export const Dashboard = () => {
             <ScrollArea className="h-[400px] w-full">
               <DataTable columns={columns} data={properties || []} />
             </ScrollArea>
+          </div>
+
+          <div className="flex justify-end mt-4">
+            <Button 
+              onClick={handleDownload}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Descarga
+            </Button>
           </div>
 
           <div className="py-24">
