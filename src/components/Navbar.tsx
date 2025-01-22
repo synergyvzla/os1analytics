@@ -25,16 +25,27 @@ export const Navbar = () => {
   }, []);
 
   return (
-    <nav className="fixed w-full bg-white/80 backdrop-blur-sm z-50 shadow-sm">
-      <div className="container mx-auto px-4 py-3">
+    <nav className="fixed w-full bg-white/95 backdrop-blur-md z-50 border-b border-gray-100">
+      <div className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <img src="/signal.png" alt="Logo" className="h-8 w-8" />
-            <span className="text-primary font-bold text-xl">Signal Orlando</span>
+          <div className="flex items-center space-x-3 group">
+            <img 
+              src="/signal.png" 
+              alt="Logo" 
+              className="h-9 w-9 transition-transform duration-300 group-hover:scale-105" 
+            />
+            <div className="flex flex-col">
+              <span className="text-[#0EA5E9] font-bold text-xl tracking-tight">
+                Signal Orlando
+              </span>
+              <span className="text-gray-500 text-xs font-medium">
+                Property Intelligence
+              </span>
+            </div>
           </div>
           <Button
             variant="ghost"
-            className="text-primary hover:text-primary/80"
+            className="text-[#0EA5E9] hover:text-[#0EA5E9]/90 hover:bg-blue-50 transition-colors duration-300 font-medium"
             onClick={() => navigate("/login")}
           >
             {user ? "Dashboard" : "Iniciar sesión"}
