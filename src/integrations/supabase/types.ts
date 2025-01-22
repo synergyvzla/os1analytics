@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      crm_interactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          notes: string | null
+          property_id: string | null
+          scheduled_call_date: string | null
+          status: Database["public"]["Enums"]["crm_status"]
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          property_id?: string | null
+          scheduled_call_date?: string | null
+          status?: Database["public"]["Enums"]["crm_status"]
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          property_id?: string | null
+          scheduled_call_date?: string | null
+          status?: Database["public"]["Enums"]["crm_status"]
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_interactions_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "Propiedades"
+            referencedColumns: ["propertyId"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -176,7 +217,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      crm_status:
+        | "contacted"
+        | "interested"
+        | "not_interested"
+        | "scheduled_call"
+        | "pending_followup"
+        | "closed_won"
+        | "closed_lost"
     }
     CompositeTypes: {
       [_ in never]: never
