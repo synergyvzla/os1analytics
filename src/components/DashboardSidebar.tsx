@@ -69,7 +69,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild
-                  className={isActive("/dashboard") ? "bg-accent text-accent-foreground" : ""}
+                  className={isActive("/dashboard") ? "bg-secondary text-secondary-foreground" : ""}
                 >
                   <button onClick={() => navigate("/dashboard")} className="w-full">
                     <LayoutDashboard className="h-4 w-4" />
@@ -80,7 +80,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild
-                  className={isActive("/crm") ? "bg-accent text-accent-foreground" : ""}
+                  className={isActive("/crm") ? "bg-secondary text-secondary-foreground" : ""}
                 >
                   <button onClick={() => navigate("/crm")} className="w-full">
                     <Users className="h-4 w-4" />
@@ -91,7 +91,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild
-                  className={isActive("/docs") ? "bg-accent text-accent-foreground" : ""}
+                  className={isActive("/docs") ? "bg-secondary text-secondary-foreground" : ""}
                 >
                   <button onClick={() => navigate("/docs")} className="w-full">
                     <FileText className="h-4 w-4" />
