@@ -63,8 +63,8 @@ export const SummaryCards = () => {
         <CardHeader className="pb-1">
           <CardTitle className="text-xs">Cantidad de potenciales leads</CardTitle>
         </CardHeader>
-        <CardContent className="flex justify-center">
-          <p className="text-2xl font-bold text-primary">
+        <CardContent className="flex items-center justify-center h-20">
+          <p className="text-4xl font-bold text-primary">
             {isLoadingLeads ? "Cargando..." : leadsCount}
           </p>
         </CardContent>
@@ -74,8 +74,8 @@ export const SummaryCards = () => {
         <CardHeader className="pb-1">
           <CardTitle className="text-xs">Códigos Zips mapeados</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-base font-bold">
+        <CardContent className="flex items-center justify-center h-20">
+          <p className="text-4xl font-bold text-primary">
             {isLoadingZips ? "Cargando..." : uniqueZipCount}
           </p>
         </CardContent>
