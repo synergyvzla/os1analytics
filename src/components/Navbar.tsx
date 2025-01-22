@@ -45,7 +45,7 @@ export const Navbar = () => {
           </div>
           <Button
             variant="ghost"
-            className="text-[#0EA5E9] hover:text-white hover:bg-[#0EA5E9] transition-all duration-300 font-medium px-6 py-2 rounded-full"
+            className="border-2 border-[#0EA5E9] bg-white text-[#0EA5E9] hover:text-white hover:bg-[#0EA5E9] transition-all duration-300 font-medium px-6 py-2 rounded-full shadow-sm"
             onClick={() => navigate("/login")}
           >
             {user ? "Dashboard" : "Iniciar sesión"}

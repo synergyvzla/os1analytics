@@ -68,7 +68,7 @@ export const Hero = () => {
       
       <div className="relative container mx-auto px-4 py-32 text-center text-white animate-fade-in">
         <h1 className="text-4xl md:text-6xl font-bold mb-6">
-        Especialistas en la identificación de propiedades con techos dañados en Orlando.
+        Análisis Inteligente de Techos en Orlando: Identificación Precisa de Daños
         </h1>
         <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
           Soluciones confiables para clientes de confianza
