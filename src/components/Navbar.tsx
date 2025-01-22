@@ -97,7 +97,7 @@ export const Navbar = () => {
               className="text-primary hover:text-primary/80"
               onClick={() => navigate("/login")}
             >
-              Dashboard
+              Login
             </Button>
           ) : (
             <Dialog open={open} onOpenChange={setOpen}>
