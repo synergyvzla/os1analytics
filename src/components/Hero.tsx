@@ -79,7 +79,7 @@ export const Hero = () => {
               size="lg"
               className="bg-accent hover:bg-accent/90 text-accent-foreground"
             >
-              Contáctanos
+              Solicita tu usuario
             </Button>
           </SheetTrigger>
           <SheetContent>
