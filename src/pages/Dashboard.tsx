@@ -97,13 +97,13 @@ export const Dashboard = () => {
             Mostrando <span className="text-base text-primary">{displayCount}</span> propiedades
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden mb-24">
+          <div className="bg-white rounded-lg shadow overflow-hidden mb-12">
             <ScrollArea className="h-[400px] w-full">
               <DataTable columns={columns} data={properties || []} />
             </ScrollArea>
           </div>
 
-          <div className="mt-2">
+          <div className="mt-16">
             <PropertiesMap
               properties={properties}
               center={mapCenter}
