@@ -1,5 +1,7 @@
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from "@/integrations/supabase/client";
 
 const mapContainerStyle = {
   width: '100%',
@@ -86,6 +88,16 @@ const formatCurrency = (value: number | null) => {
 export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
+  // Fetch Google Maps API key securely
+  const { data: mapsKey, isLoading: isLoadingKey } = useQuery({
+    queryKey: ['googleMapsKey'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('get-maps-key')
+      if (error) throw error
+      return data.apiKey
+    }
+  });
+
   const markers = useMemo(() => {
     if (!window.google) return [];
 
@@ -118,9 +130,21 @@ export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) 
     })) || [];
   }, [properties]);
 
+  if (isLoadingKey) {
+    return <div className="w-full h-[500px] flex items-center justify-center bg-gray-100 rounded-lg">
+      Cargando mapa...
+    </div>;
+  }
+
+  if (!mapsKey) {
+    return <div className="w-full h-[500px] flex items-center justify-center bg-gray-100 rounded-lg">
+      Error al cargar el mapa. Por favor, intente más tarde.
+    </div>;
+  }
+
   return (
     <div className="relative">
-      <LoadScript googleMapsApiKey="AIzaSyC2q-Pl2npZHP0T33HBbZpstTJE3UDWPog">
+      <LoadScript googleMapsApiKey={mapsKey}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={center}
