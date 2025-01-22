@@ -29,7 +29,7 @@ export const Navbar = () => {
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <img src="/signal-logo.png" alt="Logo" className="h-8 w-8" />
+            <img src="/signal.png" alt="Logo" className="h-8 w-8" />
             <span className="text-primary font-bold text-xl">Signal Orlando</span>
           </div>
           <Button
