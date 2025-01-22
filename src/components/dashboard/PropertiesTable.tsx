@@ -7,14 +7,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -32,17 +24,16 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className="border rounded-md">
-      <div className="max-h-[500px] overflow-auto">
-        <Table>
-          <TableHeader className="sticky top-0">
+    <div className="w-full border rounded-lg overflow-hidden">
+      <div className="overflow-auto" style={{ maxHeight: '500px' }}>
+        <table className="w-full border-collapse">
+          <thead className="bg-white" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead 
-                    key={header.id} 
-                    className="bg-white h-12 border-b"
-                    style={{ position: 'sticky', top: 0, zIndex: 10 }}
+                  <th
+                    key={header.id}
+                    className="h-12 px-4 text-left align-middle text-sm font-medium text-gray-500 bg-gray-50 border-b"
                   >
                     {header.isPlaceholder
                       ? null
@@ -50,34 +41,34 @@ export function DataTable<TData, TValue>({
                           header.column.columnDef.header,
                           header.getContext()
                         )}
-                  </TableHead>
+                  </th>
                 ))}
-              </TableRow>
+              </tr>
             ))}
-          </TableHeader>
-          <TableBody>
+          </thead>
+          <tbody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
+                <tr
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+                  className="border-b hover:bg-gray-50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <td key={cell.id} className="p-4">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+                    </td>
                   ))}
-                </TableRow>
+                </tr>
               ))
             ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+              <tr>
+                <td colSpan={columns.length} className="h-24 text-center text-sm text-gray-500">
                   No hay resultados.
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
     </div>
   )
