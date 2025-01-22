@@ -1,5 +1,5 @@
 import { LogOut, User, LayoutDashboard, Users, FileText, Building } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { toast } from "sonner"
 import { supabase } from "@/integrations/supabase/client"
 import {
@@ -23,6 +23,7 @@ import { useEffect, useState } from "react"
 
 export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const [userEmail, setUserEmail] = useState<string | null>(null)
 
   useEffect(() => {
@@ -46,6 +47,8 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const isActive = (path: string) => location.pathname === path
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
@@ -64,7 +67,10 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton 
+                  asChild
+                  className={isActive("/dashboard") ? "bg-accent text-accent-foreground" : ""}
+                >
                   <button onClick={() => navigate("/dashboard")} className="w-full">
                     <LayoutDashboard className="h-4 w-4" />
                     <span>Dashboard</span>
@@ -72,7 +78,10 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton 
+                  asChild
+                  className={isActive("/crm") ? "bg-accent text-accent-foreground" : ""}
+                >
                   <button onClick={() => navigate("/crm")} className="w-full">
                     <Users className="h-4 w-4" />
                     <span>CRM</span>
@@ -80,7 +89,10 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton 
+                  asChild
+                  className={isActive("/docs") ? "bg-accent text-accent-foreground" : ""}
+                >
                   <button onClick={() => navigate("/docs")} className="w-full">
                     <FileText className="h-4 w-4" />
                     <span>Documentación</span>
