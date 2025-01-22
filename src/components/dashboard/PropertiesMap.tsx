@@ -54,24 +54,6 @@ interface PropertiesMapProps {
   zoom: number;
 }
 
-const getMarkerIcon = (score: number | null) => {
-  let color = '#ea384c'; // Default rojo para score 1
-  if (score === 2) {
-    color = '#F97316'; // Naranja para score 2
-  } else if (score === 3) {
-    color = '#008f39'; // Verde para score 3
-  }
-
-  return {
-    path: google.maps.SymbolPath.CIRCLE,
-    fillColor: color,
-    fillOpacity: 0.9,
-    strokeWeight: 1,
-    strokeColor: '#ffffff',
-    scale: 10,
-  };
-};
-
 const Legend = () => (
   <div className="absolute bottom-4 left-4 bg-white p-4 rounded-lg shadow-md">
     <h3 className="text-sm font-semibold mb-2">Leyenda</h3>
@@ -105,6 +87,26 @@ export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) 
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   const markers = useMemo(() => {
+    if (!window.google) return [];
+
+    const getMarkerIcon = (score: number | null) => {
+      let color = '#ea384c'; // Default rojo para score 1
+      if (score === 2) {
+        color = '#F97316'; // Naranja para score 2
+      } else if (score === 3) {
+        color = '#008f39'; // Verde para score 3
+      }
+
+      return {
+        path: window.google.maps.SymbolPath.CIRCLE,
+        fillColor: color,
+        fillOpacity: 0.9,
+        strokeWeight: 1,
+        strokeColor: '#ffffff',
+        scale: 10,
+      };
+    };
+
     return properties?.map((property) => ({
       position: {
         lat: property.address_latitude || 0,
