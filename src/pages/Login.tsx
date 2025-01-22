@@ -50,7 +50,7 @@ export const Login = () => {
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold text-white">Acceso Restringido</h1>
             <p className="text-blue-100">
-              Sistema de Gestión de Proyectos
+              Sistema de Gestión de Leads
             </p>
           </div>
 
