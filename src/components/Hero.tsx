@@ -8,17 +8,19 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Hero = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    phoneNumber: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,22 +33,25 @@ export const Hero = () => {
           first_name: formData.firstName,
           last_name: formData.lastName,
           email: formData.email,
+          phone_number: formData.phoneNumber,
         },
       ]);
 
       if (error) throw error;
 
       toast({
-        title: "Solicitud enviada",
+        title: "¡Acceso solicitado!",
         description: "Te contactaremos pronto con tus credenciales de acceso.",
       });
 
-      // Reset form
+      // Reset form and close dialog
       setFormData({
         firstName: "",
         lastName: "",
         email: "",
+        phoneNumber: "",
       });
+      setOpen(false);
     } catch (error) {
       toast({
         title: "Error",
@@ -76,7 +81,7 @@ export const Hero = () => {
         <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
           Soluciones confiables para clientes de confianza
         </p>
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button
               size="lg"
@@ -120,6 +125,18 @@ export const Hero = () => {
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber">Teléfono</Label>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  value={formData.phoneNumber}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phoneNumber: e.target.value })
                   }
                   required
                 />
