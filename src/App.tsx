@@ -2,9 +2,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Toaster } from "@/components/ui/sonner"
 import Index from "@/pages/Index"
-import Login from "@/pages/Login"
-import Dashboard from "@/pages/Dashboard"
-import Documentation from "@/pages/Documentation"
+import { Login } from "@/pages/Login"
+import { Dashboard } from "@/pages/Dashboard"
+import { Documentation } from "@/pages/Documentation"
 import CRM from "@/pages/CRM"
 
 const queryClient = new QueryClient()

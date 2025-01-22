@@ -20,7 +20,9 @@ import { es } from "date-fns/locale"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
 
-const statusMap = {
+type CRMStatus = "contacted" | "interested" | "not_interested" | "scheduled_call" | "pending_followup" | "closed_won" | "closed_lost";
+
+const statusMap: Record<CRMStatus, { label: string; color: string }> = {
   contacted: { label: "Contactado", color: "bg-blue-500" },
   interested: { label: "Interesado", color: "bg-green-500" },
   not_interested: { label: "No Interesado", color: "bg-red-500" },
@@ -38,7 +40,7 @@ interface CRMTableProps {
 export function CRMTable({ interactions = [], onInteractionUpdate }: CRMTableProps) {
   const [updating, setUpdating] = useState<string | null>(null)
 
-  const handleStatusChange = async (interactionId: string, newStatus: string) => {
+  const handleStatusChange = async (interactionId: string, newStatus: CRMStatus) => {
     try {
       setUpdating(interactionId)
       const { error } = await supabase
@@ -80,21 +82,21 @@ export function CRMTable({ interactions = [], onInteractionUpdate }: CRMTablePro
                 <Select
                   disabled={updating === interaction.id}
                   value={interaction.status}
-                  onValueChange={(value) => handleStatusChange(interaction.id, value)}
+                  onValueChange={(value: CRMStatus) => handleStatusChange(interaction.id, value)}
                 >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue>
                       <Badge 
-                        className={statusMap[interaction.status as keyof typeof statusMap].color}
+                        className={statusMap[interaction.status as CRMStatus].color}
                       >
-                        {statusMap[interaction.status as keyof typeof statusMap].label}
+                        {statusMap[interaction.status as CRMStatus].label}
                       </Badge>
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(statusMap).map(([value, { label }]) => (
+                    {(Object.entries(statusMap) as [CRMStatus, { label: string; color: string }][]).map(([value, { label, color }]) => (
                       <SelectItem key={value} value={value}>
-                        <Badge className={statusMap[value as keyof typeof statusMap].color}>
+                        <Badge className={color}>
                           {label}
                         </Badge>
                       </SelectItem>
