@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,7 +65,7 @@ export const CityFilter = ({
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-between"
+            className="w-full justify-between hover:bg-gray-100"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <span>Seleccionar ciudades</span>
@@ -113,4 +112,3 @@ export const CityFilter = ({
     </div>
   );
 };
-

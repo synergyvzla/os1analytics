@@ -66,7 +66,7 @@ export const ZipCodeFilter = ({
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-between"
+            className="w-full justify-between hover:bg-gray-100"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <span>Seleccionar códigos postales</span>
