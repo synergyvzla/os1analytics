@@ -27,43 +27,44 @@ export const SummaryCards = () => {
     queryFn: async () => {
       console.log('Iniciando consulta de códigos ZIP...');
       
-      // Primero, veamos cuántos registros totales hay
+      // Obtener el conteo total primero
       const { count: totalCount } = await supabase
         .from('Propiedades')
         .select('*', { count: 'exact', head: true });
       
       console.log('Total de registros en la tabla:', totalCount);
       
-      // Ahora hacemos la consulta de los ZIP codes
-      const { data, error } = await supabase
-        .from('Propiedades')
-        .select('address_zip')
-        .order('address_zip')
-        .limit(15000); // Aumentamos aún más el límite
+      // Realizar consultas paginadas
+      const pageSize = 1000;
+      const pages = Math.ceil((totalCount || 0) / pageSize);
+      const allZips = new Set<number>();
       
-      if (error) {
-        console.error('Error obteniendo códigos ZIP:', error);
-        throw error;
+      for (let page = 0; page < pages; page++) {
+        const { data, error } = await supabase
+          .from('Propiedades')
+          .select('address_zip')
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+        
+        if (error) {
+          console.error('Error en página', page, error);
+          continue;
+        }
+        
+        if (data) {
+          data.forEach(item => {
+            if (item.address_zip != null) {
+              allZips.add(item.address_zip);
+            }
+          });
+        }
+        
+        console.log(`Página ${page + 1}/${pages} procesada, ZIP codes únicos hasta ahora:`, allZips.size);
       }
-
-      if (!data) {
-        console.log('No se encontraron datos');
-        return 0;
-      }
-
-      // Veamos los datos crudos primero
-      console.log('Primeros 10 ZIP codes:', data.slice(0, 10));
       
-      const uniqueZips = new Set(data
-        .filter(item => item.address_zip != null)
-        .map(item => item.address_zip)
-      );
-
-      console.log('Total de registros en la respuesta:', data.length);
-      console.log('ZIP codes únicos encontrados:', Array.from(uniqueZips));
-      console.log('Número de ZIP codes únicos:', uniqueZips.size);
+      console.log('ZIP codes únicos encontrados:', Array.from(allZips));
+      console.log('Número total de ZIP codes únicos:', allZips.size);
       
-      return uniqueZips.size;
+      return allZips.size;
     },
     refetchOnMount: true,
     staleTime: 0
@@ -72,22 +73,34 @@ export const SummaryCards = () => {
   const { data: scoreDistribution, isLoading: isLoadingScores } = useQuery({
     queryKey: ['scoreDistribution'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // También implementamos paginación aquí
+      const { count: totalCount } = await supabase
         .from('Propiedades')
-        .select('combined_score')
-        .limit(100000); // Aumentamos el límite aquí también para consistencia
-
-      if (error) {
-        console.error('Error obteniendo distribución de scores:', error);
-        throw error;
-      }
-
-      const distribution = data.reduce((acc: Record<number, number>, curr) => {
-        if (curr.combined_score) {
-          acc[curr.combined_score] = (acc[curr.combined_score] || 0) + 1;
+        .select('*', { count: 'exact', head: true });
+      
+      const pageSize = 1000;
+      const pages = Math.ceil((totalCount || 0) / pageSize);
+      const distribution: Record<number, number> = {};
+      
+      for (let page = 0; page < pages; page++) {
+        const { data, error } = await supabase
+          .from('Propiedades')
+          .select('combined_score')
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+        
+        if (error) {
+          console.error('Error en página', page, error);
+          continue;
         }
-        return acc;
-      }, {});
+        
+        if (data) {
+          data.forEach(item => {
+            if (item.combined_score) {
+              distribution[item.combined_score] = (distribution[item.combined_score] || 0) + 1;
+            }
+          });
+        }
+      }
 
       const total = Object.values(distribution).reduce((sum, count) => sum + count, 0);
       return Object.entries(distribution).map(([score, count]) => ({
