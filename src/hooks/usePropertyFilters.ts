@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -109,9 +110,9 @@ export const usePropertyFilters = () => {
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
-        .select('*', { count: 'exact' });
+        .select('*', { count: 'exact', head: true });
       
-      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
+      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 2500000)) {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
           .lte('valuation_estimatedValue', priceRange[1]);
@@ -131,7 +132,10 @@ export const usePropertyFilters = () => {
       
       const { count, error } = await query;
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error al obtener total de propiedades:', error);
+        throw error;
+      }
       return count || 0;
     }
   });
@@ -162,7 +166,7 @@ export const usePropertyFilters = () => {
       }
       
       // Limitamos la cantidad de registros para evitar errores de paginación
-      query = query.limit(1000);
+      query = query.range(0, 999);
       
       const { data, error } = await query;
       if (error) throw error;

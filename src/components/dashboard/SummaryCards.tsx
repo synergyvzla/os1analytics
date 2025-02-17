@@ -11,7 +11,8 @@ export const SummaryCards = () => {
     queryFn: async () => {
       const { count, error } = await supabase
         .from('Propiedades')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .range(0, 999);
       
       if (error) {
         console.error('Error obteniendo conteo de propiedades:', error);
