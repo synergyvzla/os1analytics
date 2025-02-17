@@ -24,12 +24,12 @@ export const SummaryCards = () => {
   const { data: uniqueZipCount, isLoading: isLoadingZips } = useQuery({
     queryKey: ['uniqueZipCodes'],
     queryFn: async () => {
-      // Agregamos logging para debugging
       console.log('Iniciando consulta de códigos ZIP...');
       
       const { data, error } = await supabase
         .from('Propiedades')
-        .select('address_zip');
+        .select('address_zip')
+        .limit(100000); // Aumentamos el límite para obtener todos los registros
       
       if (error) {
         console.error('Error obteniendo códigos ZIP:', error);
@@ -41,18 +41,16 @@ export const SummaryCards = () => {
         return 0;
       }
 
-      // Filtramos valores nulos y obtenemos valores únicos
       const uniqueZips = new Set(data
         .filter(item => item.address_zip != null)
         .map(item => item.address_zip)
       );
 
-      console.log('Total de registros:', data.length);
+      console.log('Total de registros procesados:', data.length);
       console.log('Códigos ZIP únicos encontrados:', Array.from(uniqueZips));
       
       return uniqueZips.size;
     },
-    // Desactivamos el caching para forzar la actualización de datos
     refetchOnMount: true,
     staleTime: 0
   });
@@ -62,7 +60,8 @@ export const SummaryCards = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('Propiedades')
-        .select('combined_score');
+        .select('combined_score')
+        .limit(100000); // Aumentamos el límite aquí también para consistencia
 
       if (error) {
         console.error('Error obteniendo distribución de scores:', error);
