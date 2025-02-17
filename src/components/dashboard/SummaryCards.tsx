@@ -13,7 +13,10 @@ export const SummaryCards = () => {
         .from('Propiedades')
         .select('*', { count: 'exact' });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error obteniendo conteo de propiedades:', error);
+        throw error;
+      }
       return count || 0;
     }
   });
@@ -21,20 +24,37 @@ export const SummaryCards = () => {
   const { data: uniqueZipCount, isLoading: isLoadingZips } = useQuery({
     queryKey: ['uniqueZipCodes'],
     queryFn: async () => {
-      // Usamos una consulta más directa para contar los ZIP únicos
+      // Agregamos logging para debugging
+      console.log('Iniciando consulta de códigos ZIP...');
+      
       const { data, error } = await supabase
         .from('Propiedades')
-        .select('address_zip')
-        .not('address_zip', 'is', null);
+        .select('address_zip');
       
-      if (error) throw error;
-      
-      // Usamos Set para obtener valores únicos directamente
-      const uniqueZips = new Set(data.map(item => item.address_zip));
-      console.log('Códigos ZIP únicos:', Array.from(uniqueZips)); // Para debugging
+      if (error) {
+        console.error('Error obteniendo códigos ZIP:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.log('No se encontraron datos');
+        return 0;
+      }
+
+      // Filtramos valores nulos y obtenemos valores únicos
+      const uniqueZips = new Set(data
+        .filter(item => item.address_zip != null)
+        .map(item => item.address_zip)
+      );
+
+      console.log('Total de registros:', data.length);
+      console.log('Códigos ZIP únicos encontrados:', Array.from(uniqueZips));
       
       return uniqueZips.size;
-    }
+    },
+    // Desactivamos el caching para forzar la actualización de datos
+    refetchOnMount: true,
+    staleTime: 0
   });
 
   const { data: scoreDistribution, isLoading: isLoadingScores } = useQuery({
@@ -44,7 +64,10 @@ export const SummaryCards = () => {
         .from('Propiedades')
         .select('combined_score');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error obteniendo distribución de scores:', error);
+        throw error;
+      }
 
       const distribution = data.reduce((acc: Record<number, number>, curr) => {
         if (curr.combined_score) {
