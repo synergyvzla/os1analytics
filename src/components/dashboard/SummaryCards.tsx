@@ -17,6 +17,7 @@ export const SummaryCards = () => {
         console.error('Error obteniendo conteo de propiedades:', error);
         throw error;
       }
+      console.log('Total de propiedades:', count);
       return count || 0;
     }
   });
@@ -26,10 +27,19 @@ export const SummaryCards = () => {
     queryFn: async () => {
       console.log('Iniciando consulta de códigos ZIP...');
       
+      // Primero, veamos cuántos registros totales hay
+      const { count: totalCount } = await supabase
+        .from('Propiedades')
+        .select('*', { count: 'exact', head: true });
+      
+      console.log('Total de registros en la tabla:', totalCount);
+      
+      // Ahora hacemos la consulta de los ZIP codes
       const { data, error } = await supabase
         .from('Propiedades')
         .select('address_zip')
-        .limit(100000); // Aumentamos el límite para obtener todos los registros
+        .order('address_zip')
+        .limit(15000); // Aumentamos aún más el límite
       
       if (error) {
         console.error('Error obteniendo códigos ZIP:', error);
@@ -41,13 +51,17 @@ export const SummaryCards = () => {
         return 0;
       }
 
+      // Veamos los datos crudos primero
+      console.log('Primeros 10 ZIP codes:', data.slice(0, 10));
+      
       const uniqueZips = new Set(data
         .filter(item => item.address_zip != null)
         .map(item => item.address_zip)
       );
 
-      console.log('Total de registros procesados:', data.length);
-      console.log('Códigos ZIP únicos encontrados:', Array.from(uniqueZips));
+      console.log('Total de registros en la respuesta:', data.length);
+      console.log('ZIP codes únicos encontrados:', Array.from(uniqueZips));
+      console.log('Número de ZIP codes únicos:', uniqueZips.size);
       
       return uniqueZips.size;
     },
