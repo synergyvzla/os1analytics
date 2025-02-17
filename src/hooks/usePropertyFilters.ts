@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -110,9 +109,9 @@ export const usePropertyFilters = () => {
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact' });
       
-      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 2500000)) {
+      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
           .lte('valuation_estimatedValue', priceRange[1]);
@@ -132,10 +131,7 @@ export const usePropertyFilters = () => {
       
       const { count, error } = await query;
       
-      if (error) {
-        console.error('Error al obtener total de propiedades:', error);
-        throw error;
-      }
+      if (error) throw error;
       return count || 0;
     }
   });
@@ -147,7 +143,7 @@ export const usePropertyFilters = () => {
         .from('Propiedades')
         .select('*');
       
-      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 2500000)) {
+      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
           .lte('valuation_estimatedValue', priceRange[1]);
@@ -164,9 +160,6 @@ export const usePropertyFilters = () => {
       if (selectedScores.length > 0) {
         query = query.in('combined_score', selectedScores.map(score => parseInt(score, 10)));
       }
-      
-      // Limitamos la cantidad de registros para evitar errores de paginación
-      query = query.range(0, 999);
       
       const { data, error } = await query;
       if (error) throw error;
