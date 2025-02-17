@@ -49,12 +49,12 @@ export const CityFilter = ({
           <Badge
             key={city}
             variant="secondary"
-            className="flex items-center gap-1 px-3 py-1 bg-primary text-primary-foreground"
+            className="flex items-center gap-1 px-3 py-1"
           >
             {city}
             <button
               onClick={() => removeCity(city)}
-              className="ml-1 hover:bg-primary-foreground/10 rounded-full"
+              className="ml-1 hover:bg-secondary-foreground/10 rounded-full"
             >
               <X className="h-3 w-3" />
             </button>
@@ -66,7 +66,7 @@ export const CityFilter = ({
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-between bg-primary text-primary-foreground hover:bg-primary/90"
+            className="w-full justify-between"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <span>Seleccionar ciudades</span>
@@ -90,7 +90,6 @@ export const CityFilter = ({
             <DropdownMenuCheckboxItem
               checked={selectedCities.length === availableCities?.length}
               onCheckedChange={() => handleCitySelect('all')}
-              className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
             >
               Seleccionar todas
             </DropdownMenuCheckboxItem>
@@ -101,7 +100,6 @@ export const CityFilter = ({
                   key={city}
                   checked={selectedCities.includes(city)}
                   onCheckedChange={() => handleCitySelect(city)}
-                  className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                 >
                   {city}
                 </DropdownMenuCheckboxItem>
