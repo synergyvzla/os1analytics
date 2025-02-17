@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { CityFilter } from "@/components/dashboard/CityFilter";
@@ -225,7 +224,7 @@ export const Dashboard = () => {
           </Card>
 
           <div className="flex items-baseline gap-1 text-sm font-semibold py-6">
-            Mostrando <span className="text-base text-primary">{displayCount}</span> propiedades
+            Mostrando <span className="text-base text-primary">{displayCount}</span> de <span className="text-base text-primary">{totalProperties}</span> propiedades
           </div>
 
           <div className="bg-white rounded-lg shadow overflow-hidden">
