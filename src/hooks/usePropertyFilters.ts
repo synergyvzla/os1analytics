@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -56,37 +55,27 @@ export const usePropertyFilters = () => {
   const { data: availableZipCodes } = useQuery({
     queryKey: ['availableZipCodes', selectedCities],
     queryFn: async () => {
-      let query = supabase.from('Propiedades').select('address_zip');
+      let query = supabase
+        .from('Propiedades')
+        .select('address_zip');
       
       if (selectedCities.length > 0) {
         query = query.in('address_city', selectedCities);
       }
       
-      const { count: totalCount } = await query.select('*', { count: 'exact', head: true });
+      const { data, error } = await query;
       
-      const pageSize = 1000;
-      const pages = Math.ceil((totalCount || 0) / pageSize);
-      const allZips = new Set<number>();
-      
-      for (let page = 0; page < pages; page++) {
-        const { data, error } = await query
-          .range(page * pageSize, (page + 1) * pageSize - 1);
-        
-        if (error) {
-          console.error('Error en página', page, error);
-          continue;
-        }
-        
-        if (data) {
-          data.forEach(item => {
-            if (item.address_zip != null) {
-              allZips.add(item.address_zip);
-            }
-          });
-        }
+      if (error) {
+        console.error('Error al obtener códigos postales:', error);
+        return [];
       }
       
-      const uniqueZips = Array.from(allZips).sort((a, b) => a - b);
+      const uniqueZips = Array.from(new Set(
+        data
+          .map(item => item.address_zip)
+          .filter((zip): zip is number => zip != null)
+      )).sort((a, b) => a - b);
+      
       return uniqueZips;
     }
   });
