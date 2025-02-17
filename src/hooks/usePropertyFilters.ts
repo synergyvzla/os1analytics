@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -45,13 +46,36 @@ export const usePropertyFilters = () => {
   const { data: availableZipCodes } = useQuery({
     queryKey: ['availableZipCodes'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Obtener el conteo total primero
+      const { count: totalCount } = await supabase
         .from('Propiedades')
-        .select('address_zip')
-        .not('address_zip', 'is', null);
+        .select('*', { count: 'exact', head: true });
       
-      if (error) throw error;
-      const uniqueZips = Array.from(new Set(data.map(item => item.address_zip))).sort();
+      const pageSize = 1000;
+      const pages = Math.ceil((totalCount || 0) / pageSize);
+      const allZips = new Set<number>();
+      
+      for (let page = 0; page < pages; page++) {
+        const { data, error } = await supabase
+          .from('Propiedades')
+          .select('address_zip')
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+        
+        if (error) {
+          console.error('Error en página', page, error);
+          continue;
+        }
+        
+        if (data) {
+          data.forEach(item => {
+            if (item.address_zip != null) {
+              allZips.add(item.address_zip);
+            }
+          });
+        }
+      }
+      
+      const uniqueZips = Array.from(allZips).sort((a, b) => a - b);
       return uniqueZips;
     }
   });
