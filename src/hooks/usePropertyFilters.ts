@@ -5,60 +5,71 @@ import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
 export const usePropertyFilters = () => {
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [selectedZips, setSelectedZips] = useState<string[]>([]);
   const [selectedScores, setSelectedScores] = useState<string[]>([]);
+  const [citySearchQuery, setCitySearchQuery] = useState("");
   const [zipSearchQuery, setZipSearchQuery] = useState("");
   const [scoreSearchQuery, setScoreSearchQuery] = useState("");
+  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [isZipDropdownOpen, setIsZipDropdownOpen] = useState(false);
   const [isScoreDropdownOpen, setIsScoreDropdownOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState({ lat: 28.5383, lng: -81.3792 });
   const [mapZoom, setMapZoom] = useState(9);
   const [priceRange, setPriceRange] = useState<number[]>([0, 10000000]);
 
-  const { data: totalProperties } = useQuery({
-    queryKey: ['totalProperties', priceRange, selectedZips, selectedScores],
+  const { data: availableCities } = useQuery({
+    queryKey: ['availableCities'],
     queryFn: async () => {
-      let query = supabase
-        .from('Propiedades')
-        .select('*', { count: 'exact' });
-      
-      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
-        query = query
-          .gte('valuation_estimatedValue', priceRange[0])
-          .lte('valuation_estimatedValue', priceRange[1]);
-      }
-      
-      if (selectedZips.length > 0) {
-        query = query.in('address_zip', selectedZips.map(zip => parseInt(zip, 10)));
-      }
-
-      if (selectedScores.length > 0) {
-        query = query.in('combined_score', selectedScores.map(score => parseInt(score, 10)));
-      }
-      
-      const { count, error } = await query;
-      
-      if (error) throw error;
-      return count || 0;
-    }
-  });
-
-  const { data: availableZipCodes } = useQuery({
-    queryKey: ['availableZipCodes'],
-    queryFn: async () => {
-      // Obtener el conteo total primero
       const { count: totalCount } = await supabase
         .from('Propiedades')
         .select('*', { count: 'exact', head: true });
       
       const pageSize = 1000;
       const pages = Math.ceil((totalCount || 0) / pageSize);
-      const allZips = new Set<number>();
+      const allCities = new Set<string>();
       
       for (let page = 0; page < pages; page++) {
         const { data, error } = await supabase
           .from('Propiedades')
-          .select('address_zip')
+          .select('address_city')
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+        
+        if (error) {
+          console.error('Error en página', page, error);
+          continue;
+        }
+        
+        if (data) {
+          data.forEach(item => {
+            if (item.address_city != null) {
+              allCities.add(item.address_city);
+            }
+          });
+        }
+      }
+      
+      return Array.from(allCities).sort();
+    }
+  });
+
+  const { data: availableZipCodes } = useQuery({
+    queryKey: ['availableZipCodes', selectedCities],
+    queryFn: async () => {
+      let query = supabase.from('Propiedades').select('address_zip');
+      
+      if (selectedCities.length > 0) {
+        query = query.in('address_city', selectedCities);
+      }
+      
+      const { count: totalCount } = await query.select('*', { count: 'exact', head: true });
+      
+      const pageSize = 1000;
+      const pages = Math.ceil((totalCount || 0) / pageSize);
+      const allZips = new Set<number>();
+      
+      for (let page = 0; page < pages; page++) {
+        const { data, error } = await query
           .range(page * pageSize, (page + 1) * pageSize - 1);
         
         if (error) {
@@ -81,12 +92,16 @@ export const usePropertyFilters = () => {
   });
 
   const { data: availableScores } = useQuery({
-    queryKey: ['availableScores', selectedZips],
+    queryKey: ['availableScores', selectedCities, selectedZips],
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
         .select('combined_score')
         .not('combined_score', 'is', null);
+      
+      if (selectedCities.length > 0) {
+        query = query.in('address_city', selectedCities);
+      }
       
       if (selectedZips.length > 0) {
         query = query.in('address_zip', selectedZips.map(zip => parseInt(zip, 10)));
@@ -100,8 +115,40 @@ export const usePropertyFilters = () => {
     }
   });
 
+  const { data: totalProperties } = useQuery({
+    queryKey: ['totalProperties', priceRange, selectedCities, selectedZips, selectedScores],
+    queryFn: async () => {
+      let query = supabase
+        .from('Propiedades')
+        .select('*', { count: 'exact' });
+      
+      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
+        query = query
+          .gte('valuation_estimatedValue', priceRange[0])
+          .lte('valuation_estimatedValue', priceRange[1]);
+      }
+      
+      if (selectedCities.length > 0) {
+        query = query.in('address_city', selectedCities);
+      }
+      
+      if (selectedZips.length > 0) {
+        query = query.in('address_zip', selectedZips.map(zip => parseInt(zip, 10)));
+      }
+
+      if (selectedScores.length > 0) {
+        query = query.in('combined_score', selectedScores.map(score => parseInt(score, 10)));
+      }
+      
+      const { count, error } = await query;
+      
+      if (error) throw error;
+      return count || 0;
+    }
+  });
+
   const { data: properties } = useQuery({
-    queryKey: ['properties', selectedZips, selectedScores, priceRange],
+    queryKey: ['properties', selectedCities, selectedZips, selectedScores, priceRange],
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
@@ -111,6 +158,10 @@ export const usePropertyFilters = () => {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
           .lte('valuation_estimatedValue', priceRange[1]);
+      }
+
+      if (selectedCities.length > 0) {
+        query = query.in('address_city', selectedCities);
       }
       
       if (selectedZips.length > 0) {
@@ -145,6 +196,18 @@ export const usePropertyFilters = () => {
     }
   });
 
+  const handleCitySelect = (city: string) => {
+    setSelectedCities(prev => {
+      if (city === 'all') {
+        return prev.length === availableCities?.length ? [] : (availableCities || []);
+      }
+      if (prev.includes(city)) {
+        return prev.filter(c => c !== city);
+      }
+      return [...prev, city];
+    });
+  };
+
   const handleZipSelect = (zip: string) => {
     setSelectedZips(prev => {
       if (zip === 'all') {
@@ -169,6 +232,10 @@ export const usePropertyFilters = () => {
     });
   };
 
+  const removeCity = (city: string) => {
+    setSelectedCities(prev => prev.filter(c => c !== city));
+  };
+
   const removeZip = (zip: string) => {
     setSelectedZips(prev => prev.filter(z => z !== zip));
   };
@@ -178,24 +245,32 @@ export const usePropertyFilters = () => {
   };
 
   return {
+    selectedCities,
     selectedZips,
     selectedScores,
+    citySearchQuery,
+    setCitySearchQuery,
     zipSearchQuery,
     setZipSearchQuery,
     scoreSearchQuery,
     setScoreSearchQuery,
+    isCityDropdownOpen,
+    setIsCityDropdownOpen,
     isZipDropdownOpen,
     setIsZipDropdownOpen,
     isScoreDropdownOpen,
     setIsScoreDropdownOpen,
     mapCenter,
     mapZoom,
+    availableCities,
     availableZipCodes,
     availableScores,
     properties,
     totalProperties,
+    handleCitySelect,
     handleZipSelect,
     handleScoreSelect,
+    removeCity,
     removeZip,
     removeScore,
     priceRange,

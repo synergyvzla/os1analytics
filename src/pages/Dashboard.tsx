@@ -1,5 +1,7 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
+import { CityFilter } from "@/components/dashboard/CityFilter";
 import { ZipCodeFilter } from "@/components/dashboard/ZipCodeFilter";
 import { ScoreFilter } from "@/components/dashboard/ScoreFilter";
 import { PriceRangeFilter } from "@/components/dashboard/PriceRangeFilter";
@@ -15,43 +17,49 @@ import { Download } from "lucide-react";
 
 export const Dashboard = () => {
   const {
+    selectedCities,
     selectedZips,
     selectedScores,
+    citySearchQuery,
+    setCitySearchQuery,
     zipSearchQuery,
     setZipSearchQuery,
     scoreSearchQuery,
     setScoreSearchQuery,
+    isCityDropdownOpen,
+    setIsCityDropdownOpen,
     isZipDropdownOpen,
     setIsZipDropdownOpen,
     isScoreDropdownOpen,
     setIsScoreDropdownOpen,
     mapCenter,
     mapZoom,
+    availableCities,
     availableZipCodes,
     availableScores,
     properties,
     totalProperties,
+    handleCitySelect,
     handleZipSelect,
     handleScoreSelect,
+    removeCity,
     removeZip,
     removeScore,
     priceRange,
     setPriceRange,
   } = usePropertyFilters();
 
-  const displayCount = (selectedZips.length > 0 || selectedScores.length > 0) 
+  const displayCount = (selectedCities.length > 0 || selectedZips.length > 0 || selectedScores.length > 0) 
     ? properties?.length || 0 
     : totalProperties || 0;
 
   const handleDownload = () => {
     if (!properties || properties.length === 0) return;
     
-    // Convert properties to CSV
     const headers = Object.keys(properties[0]).join(',');
     const rows = properties.map(prop => Object.values(prop).join(','));
     const csv = [headers, ...rows].join('\n');
     
-    // Create and trigger download
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -79,6 +87,19 @@ export const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-3">
+                <div>
+                  <h3 className="text-xs font-semibold mb-1.5">Ciudades</h3>
+                  <CityFilter
+                    selectedCities={selectedCities}
+                    availableCities={availableCities}
+                    searchQuery={citySearchQuery}
+                    setSearchQuery={setCitySearchQuery}
+                    handleCitySelect={handleCitySelect}
+                    removeCity={removeCity}
+                    isDropdownOpen={isCityDropdownOpen}
+                    setIsDropdownOpen={setIsCityDropdownOpen}
+                  />
+                </div>
                 <div>
                   <h3 className="text-xs font-semibold mb-1.5">Códigos Postales</h3>
                   <ZipCodeFilter
