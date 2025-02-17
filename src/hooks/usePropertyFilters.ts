@@ -143,7 +143,7 @@ export const usePropertyFilters = () => {
         .from('Propiedades')
         .select('*');
       
-      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
+      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 2500000)) {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
           .lte('valuation_estimatedValue', priceRange[1]);
@@ -160,6 +160,9 @@ export const usePropertyFilters = () => {
       if (selectedScores.length > 0) {
         query = query.in('combined_score', selectedScores.map(score => parseInt(score, 10)));
       }
+      
+      // Limitamos la cantidad de registros para evitar errores de paginación
+      query = query.limit(1000);
       
       const { data, error } = await query;
       if (error) throw error;
