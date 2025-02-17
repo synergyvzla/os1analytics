@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +27,13 @@ export const SummaryCards = () => {
         .not('address_zip', 'is', null);
       
       if (error) throw error;
-      const uniqueZips = new Set(data.map(item => item.address_zip));
+
+      // Filtrar valores nulos y duplicados
+      const validZips = data
+        .map(item => item.address_zip)
+        .filter((zip): zip is number => zip !== null);
+      const uniqueZips = new Set(validZips);
+      
       return uniqueZips.size;
     }
   });

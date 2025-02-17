@@ -106,6 +106,7 @@ export type Database = {
       }
       Propiedades: {
         Row: {
+          address_city: string | null
           address_countyFipsCode: number | null
           address_formattedStreet: string | null
           address_houseNumber: number | null
@@ -149,6 +150,7 @@ export type Database = {
           wind_score: number | null
         }
         Insert: {
+          address_city?: string | null
           address_countyFipsCode?: number | null
           address_formattedStreet?: string | null
           address_houseNumber?: number | null
@@ -192,6 +194,7 @@ export type Database = {
           wind_score?: number | null
         }
         Update: {
+          address_city?: string | null
           address_countyFipsCode?: number | null
           address_formattedStreet?: string | null
           address_houseNumber?: number | null
