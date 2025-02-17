@@ -113,7 +113,7 @@ export const usePropertyFilters = () => {
         .from('Propiedades')
         .select('*', { count: 'exact', head: true });
       
-      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 2500000)) {
+      if (priceRange && (priceRange[0] !== 250000 || priceRange[1] !== 2500000)) {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
           .lte('valuation_estimatedValue', priceRange[1]);
@@ -145,7 +145,7 @@ export const usePropertyFilters = () => {
         .from('Propiedades')
         .select('*');
       
-      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 2500000)) {
+      if (priceRange && (priceRange[0] !== 250000 || priceRange[1] !== 2500000)) {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
           .lte('valuation_estimatedValue', priceRange[1]);
