@@ -15,7 +15,7 @@ export const usePropertyFilters = () => {
   const [isScoreDropdownOpen, setIsScoreDropdownOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState({ lat: 28.5383, lng: -81.3792 });
   const [mapZoom, setMapZoom] = useState(9);
-  const [priceRange, setPriceRange] = useState<number[]>([0, 10000000]);
+  const [priceRange, setPriceRange] = useState<number[]>([250000, 2500000]);
 
   const { data: availableCities } = useQuery({
     queryKey: ['availableCities'],

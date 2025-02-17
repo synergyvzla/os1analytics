@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -43,7 +44,7 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
                 value={priceRange[1]}
                 onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
                 min={priceRange[0]}
-                max={900000}
+                max={2500000}
                 step={10000}
                 className="h-6 text-xs"
               />
@@ -52,7 +53,7 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
           <div className="pt-1">
             <Slider
               min={250000}
-              max={900000}
+              max={2500000}
               step={10000}
               value={[priceRange[0], priceRange[1]]}
               onValueChange={setPriceRange}
@@ -62,7 +63,7 @@ export const PriceRangeFilter = ({ priceRange, setPriceRange }: PriceRangeFilter
             />
             <div className="flex justify-between mt-0.5 text-[10px] text-muted-foreground">
               <span>{formatPrice(250000)}</span>
-              <span>{formatPrice(900000)}</span>
+              <span>{formatPrice(2500000)}</span>
             </div>
           </div>
         </div>
