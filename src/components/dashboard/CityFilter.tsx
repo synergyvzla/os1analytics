@@ -90,6 +90,7 @@ export const CityFilter = ({
             <DropdownMenuCheckboxItem
               checked={selectedCities.length === availableCities?.length}
               onCheckedChange={() => handleCitySelect('all')}
+              className="focus:bg-gray-100 hover:bg-gray-100"
             >
               Seleccionar todas
             </DropdownMenuCheckboxItem>
@@ -100,6 +101,7 @@ export const CityFilter = ({
                   key={city}
                   checked={selectedCities.includes(city)}
                   onCheckedChange={() => handleCitySelect(city)}
+                  className="focus:bg-gray-100 hover:bg-gray-100"
                 >
                   {city}
                 </DropdownMenuCheckboxItem>
@@ -111,3 +113,4 @@ export const CityFilter = ({
     </div>
   );
 };
+

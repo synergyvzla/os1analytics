@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,7 @@ export const ZipCodeFilter = ({
             <DropdownMenuCheckboxItem
               checked={selectedZips.length === availableZipCodes?.length}
               onCheckedChange={() => handleZipSelect('all')}
+              className="focus:bg-gray-100 hover:bg-gray-100"
             >
               Seleccionar todos
             </DropdownMenuCheckboxItem>
@@ -98,6 +100,7 @@ export const ZipCodeFilter = ({
                 key={zip}
                 checked={selectedZips.includes(zip?.toString() || '')}
                 onCheckedChange={() => handleZipSelect(zip?.toString() || '')}
+                className="focus:bg-gray-100 hover:bg-gray-100"
               >
                 {zip}
               </DropdownMenuCheckboxItem>

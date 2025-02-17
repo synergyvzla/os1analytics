@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,7 @@ export const ScoreFilter = ({
             <DropdownMenuCheckboxItem
               checked={selectedScores.length === availableScores?.length}
               onCheckedChange={() => handleScoreSelect('all')}
+              className="focus:bg-gray-100 hover:bg-gray-100"
             >
               Seleccionar todos
             </DropdownMenuCheckboxItem>
@@ -98,6 +100,7 @@ export const ScoreFilter = ({
                 key={score}
                 checked={selectedScores.includes(score?.toString() || '')}
                 onCheckedChange={() => handleScoreSelect(score?.toString() || '')}
+                className="focus:bg-gray-100 hover:bg-gray-100"
               >
                 Score {score}
               </DropdownMenuCheckboxItem>
