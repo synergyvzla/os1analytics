@@ -59,7 +59,8 @@ export const usePropertyFilters = () => {
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
-        .select('address_zip');
+        .select('address_zip')
+        .not('address_zip', 'is', null);
       
       if (selectedCities.length > 0) {
         query = query.in('address_city', selectedCities);
@@ -101,7 +102,11 @@ export const usePropertyFilters = () => {
       const { data, error } = await query;
       
       if (error) throw error;
-      const uniqueScores = Array.from(new Set(data.map(item => item.combined_score))).sort();
+      const uniqueScores = Array.from(new Set(
+        data
+          .map(item => item.combined_score)
+          .filter((score): score is number => score != null)
+      )).sort();
       return uniqueScores;
     }
   });
@@ -193,13 +198,28 @@ export const usePropertyFilters = () => {
 
   const handleCitySelect = (city: string) => {
     setSelectedCities(prev => {
+      let newCities;
       if (city === 'all') {
-        return prev.length === availableCities?.length ? [] : (availableCities || []);
+        newCities = prev.length === availableCities?.length ? [] : (availableCities || []);
+      } else {
+        newCities = prev.includes(city) ? prev.filter(c => c !== city) : [...prev, city];
       }
-      if (prev.includes(city)) {
-        return prev.filter(c => c !== city);
+      
+      if (newCities.length === 0) {
+        setSelectedZips([]);
+        setSelectedScores([]);
+      } else {
+        setSelectedZips(prevZips => {
+          const validZips = availableZipCodes?.map(z => z.toString()) || [];
+          return prevZips.filter(zip => validZips.includes(zip));
+        });
+        setSelectedScores(prevScores => {
+          const validScores = availableScores?.map(s => s.toString()) || [];
+          return prevScores.filter(score => validScores.includes(score));
+        });
       }
-      return [...prev, city];
+      
+      return newCities;
     });
   };
 
@@ -228,7 +248,14 @@ export const usePropertyFilters = () => {
   };
 
   const removeCity = (city: string) => {
-    setSelectedCities(prev => prev.filter(c => c !== city));
+    setSelectedCities(prev => {
+      const newCities = prev.filter(c => c !== city);
+      if (newCities.length === 0) {
+        setSelectedZips([]);
+        setSelectedScores([]);
+      }
+      return newCities;
+    });
   };
 
   const removeZip = (zip: string) => {
