@@ -21,18 +21,17 @@ export const SummaryCards = () => {
   const { data: uniqueZipCount, isLoading: isLoadingZips } = useQuery({
     queryKey: ['uniqueZipCodes'],
     queryFn: async () => {
+      // Usamos una consulta más directa para contar los ZIP únicos
       const { data, error } = await supabase
         .from('Propiedades')
         .select('address_zip')
         .not('address_zip', 'is', null);
       
       if (error) throw error;
-
-      // Filtrar valores nulos y duplicados
-      const validZips = data
-        .map(item => item.address_zip)
-        .filter((zip): zip is number => zip !== null);
-      const uniqueZips = new Set(validZips);
+      
+      // Usamos Set para obtener valores únicos directamente
+      const uniqueZips = new Set(data.map(item => item.address_zip));
+      console.log('Códigos ZIP únicos:', Array.from(uniqueZips)); // Para debugging
       
       return uniqueZips.size;
     }
