@@ -13,7 +13,8 @@ import { DataTable } from "@/components/dashboard/PropertiesTable";
 import { columns } from "@/components/dashboard/columns";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const Dashboard = () => {
   const {
@@ -47,11 +48,12 @@ export const Dashboard = () => {
     removeScore,
     priceRange,
     setPriceRange,
+    currentPage,
+    totalPages,
+    handlePageChange,
   } = usePropertyFilters();
 
-  const displayCount = (selectedCities.length > 0 || selectedZips.length > 0 || selectedScores.length > 0) 
-    ? properties?.length || 0 
-    : totalProperties || 0;
+  const displayCount = properties?.length || 0;
 
   const handleDownload = () => {
     if (!properties || properties.length === 0) return;
@@ -69,6 +71,91 @@ export const Dashboard = () => {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+  };
+
+  const renderPaginationButton = (page: number) => (
+    <button
+      key={page}
+      onClick={() => handlePageChange(page)}
+      className={cn(
+        "w-10 h-10 rounded-md flex items-center justify-center",
+        currentPage === page
+          ? "bg-primary text-primary-foreground"
+          : "hover:bg-accent"
+      )}
+    >
+      {page}
+    </button>
+  );
+
+  const renderPagination = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    // Botón "Anterior"
+    pages.push(
+      <button
+        key="prev"
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="w-10 h-10 rounded-md flex items-center justify-center disabled:opacity-50 hover:bg-accent"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+    );
+
+    // Renderizar páginas
+    if (totalPages <= maxVisiblePages) {
+      // Si hay pocas páginas, mostrar todas
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(renderPaginationButton(i));
+      }
+    } else {
+      // Mostrar primeras páginas
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 3; i++) {
+          pages.push(renderPaginationButton(i));
+        }
+        pages.push(<span key="dots1" className="px-2">...</span>);
+        pages.push(renderPaginationButton(totalPages));
+      }
+      // Mostrar últimas páginas
+      else if (currentPage >= totalPages - 2) {
+        pages.push(renderPaginationButton(1));
+        pages.push(<span key="dots2" className="px-2">...</span>);
+        for (let i = totalPages - 2; i <= totalPages; i++) {
+          pages.push(renderPaginationButton(i));
+        }
+      }
+      // Mostrar páginas del medio
+      else {
+        pages.push(renderPaginationButton(1));
+        pages.push(<span key="dots1" className="px-2">...</span>);
+        pages.push(renderPaginationButton(currentPage - 1));
+        pages.push(renderPaginationButton(currentPage));
+        pages.push(renderPaginationButton(currentPage + 1));
+        pages.push(<span key="dots2" className="px-2">...</span>);
+        pages.push(renderPaginationButton(totalPages));
+      }
+    }
+
+    // Botón "Siguiente"
+    pages.push(
+      <button
+        key="next"
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="w-10 h-10 rounded-md flex items-center justify-center disabled:opacity-50 hover:bg-accent"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    );
+
+    return (
+      <div className="flex items-center justify-center gap-1 mt-4">
+        {pages}
+      </div>
+    );
   };
 
   return (
@@ -146,6 +233,8 @@ export const Dashboard = () => {
               <DataTable columns={columns} data={properties || []} />
             </ScrollArea>
           </div>
+
+          {renderPagination()}
 
           <div className="flex justify-end mt-4">
             <Button 

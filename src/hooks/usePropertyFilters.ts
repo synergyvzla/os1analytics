@@ -16,6 +16,8 @@ export const usePropertyFilters = () => {
   const [mapCenter, setMapCenter] = useState({ lat: 28.5383, lng: -81.3792 });
   const [mapZoom, setMapZoom] = useState(9);
   const [priceRange, setPriceRange] = useState<number[]>([250000, 2500000]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 1000;
 
   const { data: availableCities } = useQuery({
     queryKey: ['availableCities'],
@@ -109,9 +111,9 @@ export const usePropertyFilters = () => {
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
-        .select('*', { count: 'exact' });
+        .select('*', { count: 'exact', head: true });
       
-      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
+      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 2500000)) {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
           .lte('valuation_estimatedValue', priceRange[1]);
@@ -137,13 +139,13 @@ export const usePropertyFilters = () => {
   });
 
   const { data: properties } = useQuery({
-    queryKey: ['properties', selectedCities, selectedZips, selectedScores, priceRange],
+    queryKey: ['properties', selectedCities, selectedZips, selectedScores, priceRange, currentPage],
     queryFn: async () => {
       let query = supabase
         .from('Propiedades')
         .select('*');
       
-      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 10000000)) {
+      if (priceRange && (priceRange[0] > 0 || priceRange[1] < 2500000)) {
         query = query
           .gte('valuation_estimatedValue', priceRange[0])
           .lte('valuation_estimatedValue', priceRange[1]);
@@ -160,6 +162,10 @@ export const usePropertyFilters = () => {
       if (selectedScores.length > 0) {
         query = query.in('combined_score', selectedScores.map(score => parseInt(score, 10)));
       }
+      
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage - 1;
+      query = query.range(start, end);
       
       const { data, error } = await query;
       if (error) throw error;
@@ -233,6 +239,12 @@ export const usePropertyFilters = () => {
     setSelectedScores(prev => prev.filter(s => s !== score));
   };
 
+  const totalPages = Math.ceil((totalProperties || 0) / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return {
     selectedCities,
     selectedZips,
@@ -264,5 +276,8 @@ export const usePropertyFilters = () => {
     removeScore,
     priceRange,
     setPriceRange,
+    currentPage,
+    totalPages,
+    handlePageChange,
   };
 };
