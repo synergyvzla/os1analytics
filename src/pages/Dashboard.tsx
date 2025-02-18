@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { CityFilter } from "@/components/dashboard/CityFilter";
@@ -12,10 +13,10 @@ import { DataTable } from "@/components/dashboard/PropertiesTable";
 import { columns } from "@/components/dashboard/columns";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import JSZip from 'jszip';
 import { toast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,90 +98,147 @@ export const Dashboard = () => {
     }).format(value);
   };
 
-  const handleGeneratePDF = async () => {
-    if (!properties || properties.length === 0) {
-      toast({
-        title: "Error",
-        description: "No hay propiedades para generar el reporte",
-        variant: "destructive",
-      });
-      return;
-    }
+  const generatePropertyPDF = async (property: any, propertyImage: any) => {
+    return new Promise(async (resolve) => {
+      const doc = new jsPDF();
+      let yPos = 20;
 
-    const doc = new jsPDF();
-    let yPos = 20;
-    const pageHeight = doc.internal.pageSize.height;
+      // Título
+      doc.setFontSize(16);
+      doc.text('Reporte de Propiedad', 20, yPos);
+      yPos += 15;
 
-    for (let i = 0; i < properties.length; i++) {
-      const property = properties[i];
-      const propertyImage = propertyImages?.find(img => img.property_id === property.propertyId);
-
-      if (yPos > pageHeight - 60) {
-        doc.addPage();
-        yPos = 20;
-      }
-
-      doc.setFontSize(14);
-      doc.text(`Propiedad ${i + 1}`, 20, yPos);
-      yPos += 10;
-
-      doc.setFontSize(10);
+      // Dirección y link de Google Maps
+      doc.setFontSize(12);
       doc.text(`Dirección: ${property.address_formattedStreet || 'N/A'}`, 20, yPos);
       doc.setTextColor(0, 0, 255);
       doc.textWithLink('Ver en Google Maps', 150, yPos, {
         url: `https://www.google.com/maps/search/?api=1&query=${property.address_latitude},${property.address_longitude}`
       });
       doc.setTextColor(0, 0, 0);
-      yPos += 7;
+      yPos += 10;
 
+      // Valor estimado
       doc.text(`Valor estimado: ${formatCurrency(property.valuation_estimatedValue)}`, 20, yPos);
-      yPos += 7;
+      yPos += 15;
 
-      doc.text('Top 5 ráfagas:', 20, yPos);
-      yPos += 7;
+      // Top 5 ráfagas
+      doc.text('Top 5 ráfagas de viento:', 20, yPos);
+      yPos += 10;
       
       if (property.top_gust_1) {
         doc.text(`1. ${property.top_gust_1} mph (${new Date(property.top_gust_1_date).toLocaleDateString()})`, 25, yPos);
-        yPos += 5;
+        yPos += 7;
       }
       if (property.top_gust_2) {
         doc.text(`2. ${property.top_gust_2} mph (${new Date(property.top_gust_2_date).toLocaleDateString()})`, 25, yPos);
-        yPos += 5;
+        yPos += 7;
       }
       if (property.top_gust_3) {
         doc.text(`3. ${property.top_gust_3} mph (${new Date(property.top_gust_3_date).toLocaleDateString()})`, 25, yPos);
-        yPos += 5;
+        yPos += 7;
       }
       if (property.top_gust_4) {
         doc.text(`4. ${property.top_gust_4} mph (${new Date(property.top_gust_4_date).toLocaleDateString()})`, 25, yPos);
-        yPos += 5;
+        yPos += 7;
       }
       if (property.top_gust_5) {
         doc.text(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date).toLocaleDateString()})`, 25, yPos);
-        yPos += 5;
+        yPos += 15;
       }
 
+      // Imagen de la propiedad
       if (propertyImage) {
         try {
-          const imgData = propertyImage.image_url;
+          // Crear una imagen y esperar a que se cargue
           const img = new Image();
-          img.src = imgData;
-          doc.addImage(img, 'JPEG', 20, yPos, 50, 30);
-          yPos += 35;
+          img.crossOrigin = "Anonymous";  // Importante para imágenes de otros dominios
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = propertyImage.image_url;
+          });
+
+          // Calcular dimensiones manteniendo la proporción
+          const imgWidth = 170;  // Ancho máximo en el PDF
+          const imgHeight = (img.height * imgWidth) / img.width;
+          
+          doc.addImage(img, 'JPEG', 20, yPos, imgWidth, imgHeight);
         } catch (error) {
-          console.error('Error adding image to PDF:', error);
+          console.error('Error al agregar imagen al PDF:', error);
+          doc.text('Error al cargar la imagen de la propiedad', 20, yPos);
         }
       }
 
-      yPos += 15;
+      resolve(doc);
+    });
+  };
+
+  const handleGeneratePDF = async () => {
+    if (!properties || properties.length === 0) {
+      toast({
+        title: "Error",
+        description: "No hay propiedades para generar reportes",
+        variant: "destructive",
+      });
+      return;
     }
 
-    doc.save('reporte-propiedades.pdf');
-    
+    const zip = new JSZip();
+    const reportFolder = zip.folder("reportes");
+
+    if (!reportFolder) {
+      toast({
+        title: "Error",
+        description: "Error al crear el archivo ZIP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Mostrar toast de progreso
     toast({
-      title: "Éxito",
-      description: "El reporte PDF ha sido generado correctamente",
+      title: "Generando reportes",
+      description: "Por favor espere mientras se generan los PDFs...",
     });
+
+    try {
+      // Generar todos los PDFs
+      for (let i = 0; i < properties.length; i++) {
+        const property = properties[i];
+        const propertyImage = propertyImages?.find(img => img.property_id === property.propertyId);
+        
+        const doc = await generatePropertyPDF(property, propertyImage);
+        const pdfOutput = await doc.output('arraybuffer');
+        
+        // Agregar el PDF al ZIP
+        reportFolder.file(`propiedad_${property.propertyId}.pdf`, pdfOutput);
+      }
+
+      // Generar y descargar el ZIP
+      const content = await zip.generateAsync({type: "blob"});
+      const url = window.URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reportes_propiedades.zip';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Éxito",
+        description: "Los reportes han sido generados y empaquetados correctamente",
+      });
+    } catch (error) {
+      console.error('Error al generar los reportes:', error);
+      toast({
+        title: "Error",
+        description: "Hubo un error al generar los reportes",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderPaginationButton = (page: number) => (
