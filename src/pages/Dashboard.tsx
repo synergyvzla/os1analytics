@@ -12,8 +12,13 @@ import { DataTable } from "@/components/dashboard/PropertiesTable";
 import { columns } from "@/components/dashboard/columns";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { toast } from "@/components/ui/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Dashboard = () => {
   const {
@@ -54,6 +59,17 @@ export const Dashboard = () => {
 
   const displayCount = properties?.length || 0;
 
+  const { data: propertyImages } = useQuery({
+    queryKey: ['propertyImages'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('property_images')
+        .select('*');
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const handleDownload = () => {
     if (!properties || properties.length === 0) return;
     
@@ -70,6 +86,101 @@ export const Dashboard = () => {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+  };
+
+  const formatCurrency = (value: number | null) => {
+    if (!value) return '$0';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  const handleGeneratePDF = async () => {
+    if (!properties || properties.length === 0) {
+      toast({
+        title: "Error",
+        description: "No hay propiedades para generar el reporte",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const doc = new jsPDF();
+    let yPos = 20;
+    const pageHeight = doc.internal.pageSize.height;
+
+    for (let i = 0; i < properties.length; i++) {
+      const property = properties[i];
+      const propertyImage = propertyImages?.find(img => img.property_id === property.propertyId);
+
+      if (yPos > pageHeight - 60) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.text(`Propiedad ${i + 1}`, 20, yPos);
+      yPos += 10;
+
+      doc.setFontSize(10);
+      doc.text(`Dirección: ${property.address_formattedStreet || 'N/A'}`, 20, yPos);
+      doc.setTextColor(0, 0, 255);
+      doc.textWithLink('Ver en Google Maps', 150, yPos, {
+        url: `https://www.google.com/maps/search/?api=1&query=${property.address_latitude},${property.address_longitude}`
+      });
+      doc.setTextColor(0, 0, 0);
+      yPos += 7;
+
+      doc.text(`Valor estimado: ${formatCurrency(property.valuation_estimatedValue)}`, 20, yPos);
+      yPos += 7;
+
+      doc.text('Top 5 ráfagas:', 20, yPos);
+      yPos += 7;
+      
+      if (property.top_gust_1) {
+        doc.text(`1. ${property.top_gust_1} mph (${new Date(property.top_gust_1_date).toLocaleDateString()})`, 25, yPos);
+        yPos += 5;
+      }
+      if (property.top_gust_2) {
+        doc.text(`2. ${property.top_gust_2} mph (${new Date(property.top_gust_2_date).toLocaleDateString()})`, 25, yPos);
+        yPos += 5;
+      }
+      if (property.top_gust_3) {
+        doc.text(`3. ${property.top_gust_3} mph (${new Date(property.top_gust_3_date).toLocaleDateString()})`, 25, yPos);
+        yPos += 5;
+      }
+      if (property.top_gust_4) {
+        doc.text(`4. ${property.top_gust_4} mph (${new Date(property.top_gust_4_date).toLocaleDateString()})`, 25, yPos);
+        yPos += 5;
+      }
+      if (property.top_gust_5) {
+        doc.text(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date).toLocaleDateString()})`, 25, yPos);
+        yPos += 5;
+      }
+
+      if (propertyImage) {
+        try {
+          const imgData = propertyImage.image_url;
+          const img = new Image();
+          img.src = imgData;
+          doc.addImage(img, 'JPEG', 20, yPos, 50, 30);
+          yPos += 35;
+        } catch (error) {
+          console.error('Error adding image to PDF:', error);
+        }
+      }
+
+      yPos += 15;
+    }
+
+    doc.save('reporte-propiedades.pdf');
+    
+    toast({
+      title: "Éxito",
+      description: "El reporte PDF ha sido generado correctamente",
+    });
   };
 
   const renderPaginationButton = (page: number) => (
@@ -91,43 +202,24 @@ export const Dashboard = () => {
     const pages = [];
     const maxVisiblePages = 5;
 
-    // Botón "Anterior"
-    pages.push(
-      <button
-        key="prev"
-        onClick={() => handlePageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="w-10 h-10 rounded-md flex items-center justify-center disabled:opacity-50 hover:bg-accent"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-    );
-
-    // Renderizar páginas
     if (totalPages <= maxVisiblePages) {
-      // Si hay pocas páginas, mostrar todas
       for (let i = 1; i <= totalPages; i++) {
         pages.push(renderPaginationButton(i));
       }
     } else {
-      // Mostrar primeras páginas
       if (currentPage <= 3) {
         for (let i = 1; i <= 3; i++) {
           pages.push(renderPaginationButton(i));
         }
         pages.push(<span key="dots1" className="px-2">...</span>);
         pages.push(renderPaginationButton(totalPages));
-      }
-      // Mostrar últimas páginas
-      else if (currentPage >= totalPages - 2) {
+      } else if (currentPage >= totalPages - 2) {
         pages.push(renderPaginationButton(1));
         pages.push(<span key="dots2" className="px-2">...</span>);
         for (let i = totalPages - 2; i <= totalPages; i++) {
           pages.push(renderPaginationButton(i));
         }
-      }
-      // Mostrar páginas del medio
-      else {
+      } else {
         pages.push(renderPaginationButton(1));
         pages.push(<span key="dots1" className="px-2">...</span>);
         pages.push(renderPaginationButton(currentPage - 1));
@@ -137,18 +229,6 @@ export const Dashboard = () => {
         pages.push(renderPaginationButton(totalPages));
       }
     }
-
-    // Botón "Siguiente"
-    pages.push(
-      <button
-        key="next"
-        onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="w-10 h-10 rounded-md flex items-center justify-center disabled:opacity-50 hover:bg-accent"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
-    );
 
     return (
       <div className="flex items-center justify-center gap-1 mt-4">
@@ -235,13 +315,21 @@ export const Dashboard = () => {
 
           {renderPagination()}
 
-          <div className="flex justify-end mt-4">
+          <div className="flex justify-end mt-4 gap-2">
             <Button 
               onClick={handleDownload}
               className="gap-2"
             >
               <Download className="h-4 w-4" />
-              Descarga
+              Descarga CSV
+            </Button>
+            <Button 
+              onClick={handleGeneratePDF}
+              className="gap-2"
+              variant="secondary"
+            >
+              <FileText className="h-4 w-4" />
+              Generar PDF
             </Button>
           </div>
 
