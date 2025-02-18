@@ -20,6 +20,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { generatePropertyPDF } from '@/utils/pdfUtils';
+import { Progress } from "@/components/ui/progress";
 
 export const Dashboard = () => {
   const {
@@ -124,9 +125,21 @@ export const Dashboard = () => {
       return;
     }
 
-    toast({
+    const totalProperties = properties.length;
+    let processedProperties = 0;
+
+    const progressToast = toast({
       title: "Generando reportes",
-      description: "Por favor espere mientras se generan los PDFs...",
+      description: (
+        <div className="w-full">
+          <Progress 
+            value={(processedProperties / totalProperties) * 100} 
+            className="w-full h-2" 
+          />
+          <p className="text-xs mt-2">{`${processedProperties} de ${totalProperties} reportes generados`}</p>
+        </div>
+      ),
+      duration: Infinity,
     });
 
     try {
@@ -135,6 +148,22 @@ export const Dashboard = () => {
         const doc = await generatePropertyPDF(property);
         const pdfOutput = await doc.output('arraybuffer');
         reportFolder.file(`propiedad_${property.propertyId}.pdf`, pdfOutput);
+        
+        processedProperties = i + 1;
+        toast({
+          title: "Generando reportes",
+          description: (
+            <div className="w-full">
+              <Progress 
+                value={(processedProperties / totalProperties) * 100} 
+                className="w-full h-2" 
+              />
+              <p className="text-xs mt-2">{`${processedProperties} de ${totalProperties} reportes generados`}</p>
+            </div>
+          ),
+          duration: Infinity,
+          id: progressToast
+        });
       }
 
       const content = await zip.generateAsync({type: "blob"});

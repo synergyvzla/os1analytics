@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -32,10 +31,10 @@ const formatCurrency = (value: number | null) => {
 export const generatePropertyPDF = async (property: Property): Promise<jsPDF> => {
   const doc = new jsPDF();
   
-  // Agregar borde superior verde
+  // Agregar borde superior verde mejorado
   doc.setDrawColor(218, 242, 31); // Color #daf21f
-  doc.setLineWidth(1.5);
-  doc.line(0, 10, 210, 10); // Línea horizontal en la parte superior
+  doc.setLineWidth(5); // Borde más grueso
+  doc.line(0, 0, 210, 0); // Línea horizontal desde el borde superior
   
   let yPos = 20;
 
@@ -62,7 +61,22 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
     doc.text(`1. ${property.top_gust_1} mph (${new Date(property.top_gust_1_date!).toLocaleDateString()})`, 25, yPos);
     yPos += 7;
   }
-  // ... agregar el resto de las ráfagas
+  if (property.top_gust_2) {
+    doc.text(`2. ${property.top_gust_2} mph (${new Date(property.top_gust_2_date!).toLocaleDateString()})`, 25, yPos);
+    yPos += 7;
+  }
+  if (property.top_gust_3) {
+    doc.text(`3. ${property.top_gust_3} mph (${new Date(property.top_gust_3_date!).toLocaleDateString()})`, 25, yPos);
+    yPos += 7;
+  }
+  if (property.top_gust_4) {
+    doc.text(`4. ${property.top_gust_4} mph (${new Date(property.top_gust_4_date!).toLocaleDateString()})`, 25, yPos);
+    yPos += 7;
+  }
+  if (property.top_gust_5) {
+    doc.text(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date!).toLocaleDateString()})`, 25, yPos);
+    yPos += 7;
+  }
 
   // Intentar agregar la imagen
   try {
