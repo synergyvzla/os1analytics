@@ -1,3 +1,4 @@
+
 import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
 
