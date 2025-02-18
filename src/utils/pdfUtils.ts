@@ -31,6 +31,12 @@ const formatCurrency = (value: number | null) => {
 
 export const generatePropertyPDF = async (property: Property): Promise<jsPDF> => {
   const doc = new jsPDF();
+  
+  // Agregar borde superior verde
+  doc.setDrawColor(218, 242, 31); // Color #daf21f
+  doc.setLineWidth(1.5);
+  doc.line(0, 10, 210, 10); // Línea horizontal en la parte superior
+  
   let yPos = 20;
 
   console.log("Generando PDF para propiedad:", property.propertyId);
@@ -43,11 +49,6 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   // Información básica
   doc.setFontSize(12);
   doc.text(`Dirección: ${property.address_formattedStreet || 'N/A'}`, 20, yPos);
-  doc.setTextColor(0, 0, 255);
-  doc.textWithLink('Ver en Google Maps', 150, yPos, {
-    url: `https://www.google.com/maps/search/?api=1&query=${property.address_latitude},${property.address_longitude}`
-  });
-  doc.setTextColor(0, 0, 0);
   yPos += 10;
 
   doc.text(`Valor estimado: ${formatCurrency(property.valuation_estimatedValue)}`, 20, yPos);
