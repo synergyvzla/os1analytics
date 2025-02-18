@@ -64,14 +64,12 @@ export const Dashboard = () => {
     queryFn: async () => {
       console.log("Iniciando consulta de imágenes...");
       
-      // Primero, obtener el total de imágenes
       const { count } = await supabase
         .from('property_images')
         .select('*', { count: 'exact', head: true });
       
       console.log("Total de imágenes en la base de datos:", count);
 
-      // Luego, obtener las imágenes para la página actual
       const { data, error } = await supabase
         .from('property_images')
         .select('*')
@@ -82,10 +80,9 @@ export const Dashboard = () => {
         throw error;
       }
 
-      // Transformar los datos para extraer el ID de la propiedad del nombre de la imagen
       const transformedData = data?.map(img => ({
         ...img,
-        property_id: img.image_url.split('/').pop()?.replace('.png', '') || img.property_id
+        property_id: img.image_url.split('/').pop()?.split('.')[0] || img.property_id
       }));
 
       console.log("Imágenes obtenidas para la página actual:", transformedData?.length);
@@ -111,12 +108,10 @@ export const Dashboard = () => {
     console.log("Generando PDF para propiedad:", property.propertyId);
     console.log("Datos de imagen encontrados:", propertyImage);
 
-    // Título
     doc.setFontSize(16);
     doc.text('Reporte de Propiedad', 20, yPos);
     yPos += 15;
 
-    // Dirección y link de Google Maps
     doc.setFontSize(12);
     doc.text(`Dirección: ${property.address_formattedStreet || 'N/A'}`, 20, yPos);
     doc.setTextColor(0, 0, 255);
@@ -126,11 +121,9 @@ export const Dashboard = () => {
     doc.setTextColor(0, 0, 0);
     yPos += 10;
 
-    // Valor estimado
     doc.text(`Valor estimado: ${formatCurrency(property.valuation_estimatedValue)}`, 20, yPos);
     yPos += 15;
 
-    // Top 5 ráfagas
     doc.text('Top 5 ráfagas de viento:', 20, yPos);
     yPos += 10;
     
@@ -155,12 +148,10 @@ export const Dashboard = () => {
       yPos += 15;
     }
 
-    // Imagen de la propiedad
     if (propertyImage) {
       try {
         console.log("Intentando cargar imagen desde URL:", propertyImage.image_url);
         
-        // Convertir la imagen a base64
         const response = await fetch(propertyImage.image_url);
         const blob = await response.blob();
         const base64 = await new Promise<string>((resolve) => {
@@ -171,7 +162,6 @@ export const Dashboard = () => {
 
         console.log("Imagen convertida a base64");
 
-        // Crear una imagen y esperar a que se cargue
         const img = new Image();
         img.crossOrigin = "Anonymous";
         
@@ -189,14 +179,12 @@ export const Dashboard = () => {
 
         console.log("Dimensiones de la imagen:", { width: img.width, height: img.height });
 
-        // Calcular dimensiones manteniendo la proporción
-        const imgWidth = 170;  // Ancho máximo en el PDF
+        const imgWidth = 170;
         const imgHeight = (img.height * imgWidth) / img.width;
         
         console.log("Dimensiones calculadas para el PDF:", { width: imgWidth, height: imgHeight });
         
         try {
-          // Usar directamente la cadena base64 para agregar la imagen
           doc.addImage(base64, 'PNG', 20, yPos, imgWidth, imgHeight);
           console.log("Imagen agregada al PDF exitosamente");
         } catch (addImageError) {
@@ -247,22 +235,14 @@ export const Dashboard = () => {
         return;
       }
 
-      if (!propertyImages || propertyImages.length === 0) {
-        console.log("No hay imágenes disponibles en propertyImages");
-        console.log("Estado de la consulta:", { isLoadingImages });
-      } else {
-        console.log("Total de imágenes disponibles:", propertyImages.length);
-        console.log("Muestra de imágenes:", propertyImages.slice(0, 2));
-      }
-
       for (let i = 0; i < properties.length; i++) {
         const property = properties[i];
         console.log("Procesando propiedad:", property.propertyId);
         
         const propertyImage = propertyImages?.find(img => {
           const propertyIdFromImage = img.property_id;
-          console.log("Comparando imagen:", {
-            imagen_id: propertyIdFromImage,
+          console.log("Comparando IDs:", {
+            imagen_id_sin_extension: propertyIdFromImage,
             propiedad_id: property.propertyId,
             coinciden: propertyIdFromImage === property.propertyId
           });
