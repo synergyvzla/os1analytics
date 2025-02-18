@@ -59,20 +59,32 @@ export const Dashboard = () => {
 
   const displayCount = properties?.length || 0;
 
-  const { data: propertyImages } = useQuery({
-    queryKey: ['propertyImages'],
+  const { data: propertyImages, isLoading: isLoadingImages } = useQuery({
+    queryKey: ['propertyImages', currentPage],
     queryFn: async () => {
       console.log("Iniciando consulta de imágenes...");
+      
+      // Primero, obtener el total de imágenes
+      const { count } = await supabase
+        .from('property_images')
+        .select('*', { count: 'exact', head: true });
+      
+      console.log("Total de imágenes en la base de datos:", count);
+
+      // Luego, obtener las imágenes para la página actual
       const { data, error } = await supabase
         .from('property_images')
-        .select('*');
+        .select('*')
+        .range((currentPage - 1) * 100, currentPage * 100 - 1);
 
       if (error) {
         console.error("Error al obtener imágenes:", error);
         throw error;
       }
 
-      console.log("Imágenes obtenidas:", data);
+      console.log("Imágenes obtenidas para la página actual:", data?.length);
+      console.log("Muestra de los primeros 5 registros:", data?.slice(0, 5));
+      
       return data;
     }
   });
@@ -225,10 +237,17 @@ export const Dashboard = () => {
     });
 
     try {
+      if (isLoadingImages) {
+        console.log("Esperando a que se carguen las imágenes...");
+        return;
+      }
+
       if (!propertyImages || propertyImages.length === 0) {
         console.log("No hay imágenes disponibles en propertyImages");
+        console.log("Estado de la consulta:", { isLoadingImages });
       } else {
         console.log("Total de imágenes disponibles:", propertyImages.length);
+        console.log("Muestra de imágenes:", propertyImages.slice(0, 2));
       }
 
       // Generar todos los PDFs
@@ -239,7 +258,8 @@ export const Dashboard = () => {
         const propertyImage = propertyImages?.find(img => {
           console.log("Comparando imagen:", {
             imagen_id: img.property_id,
-            propiedad_id: property.propertyId
+            propiedad_id: property.propertyId,
+            coinciden: img.property_id === property.propertyId
           });
           return img.property_id === property.propertyId;
         });
