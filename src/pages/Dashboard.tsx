@@ -153,9 +153,20 @@ export const Dashboard = () => {
       try {
         console.log("Intentando cargar imagen desde URL:", propertyImage.image_url);
         
+        // Convertir la imagen a base64
+        const response = await fetch(propertyImage.image_url);
+        const blob = await response.blob();
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+
+        console.log("Imagen convertida a base64");
+
         // Crear una imagen y esperar a que se cargue
         const img = new Image();
-        img.crossOrigin = "Anonymous";  // Importante para imágenes de otros dominios
+        img.crossOrigin = "Anonymous";
         
         await new Promise((resolve, reject) => {
           img.onload = () => {
@@ -166,7 +177,7 @@ export const Dashboard = () => {
             console.error("Error al cargar la imagen:", error);
             reject(error);
           };
-          img.src = propertyImage.image_url;
+          img.src = base64;
         });
 
         console.log("Dimensiones de la imagen:", { width: img.width, height: img.height });
@@ -178,7 +189,8 @@ export const Dashboard = () => {
         console.log("Dimensiones calculadas para el PDF:", { width: imgWidth, height: imgHeight });
         
         try {
-          doc.addImage(img, 'PNG', 20, yPos, imgWidth, imgHeight);
+          // Usar directamente la cadena base64 para agregar la imagen
+          doc.addImage(base64, 'PNG', 20, yPos, imgWidth, imgHeight);
           console.log("Imagen agregada al PDF exitosamente");
         } catch (addImageError) {
           console.error("Error al agregar imagen al PDF:", addImageError);
