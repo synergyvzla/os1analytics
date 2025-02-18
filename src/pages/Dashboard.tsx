@@ -82,10 +82,16 @@ export const Dashboard = () => {
         throw error;
       }
 
-      console.log("Imágenes obtenidas para la página actual:", data?.length);
-      console.log("Muestra de los primeros 5 registros:", data?.slice(0, 5));
+      // Transformar los datos para extraer el ID de la propiedad del nombre de la imagen
+      const transformedData = data?.map(img => ({
+        ...img,
+        property_id: img.image_url.split('/').pop()?.replace('.png', '') || img.property_id
+      }));
+
+      console.log("Imágenes obtenidas para la página actual:", transformedData?.length);
+      console.log("Muestra de los primeros 5 registros transformados:", transformedData?.slice(0, 5));
       
-      return data;
+      return transformedData;
     }
   });
 
@@ -230,7 +236,6 @@ export const Dashboard = () => {
       return;
     }
 
-    // Mostrar toast de progreso
     toast({
       title: "Generando reportes",
       description: "Por favor espere mientras se generan los PDFs...",
@@ -250,18 +255,18 @@ export const Dashboard = () => {
         console.log("Muestra de imágenes:", propertyImages.slice(0, 2));
       }
 
-      // Generar todos los PDFs
       for (let i = 0; i < properties.length; i++) {
         const property = properties[i];
         console.log("Procesando propiedad:", property.propertyId);
         
         const propertyImage = propertyImages?.find(img => {
+          const propertyIdFromImage = img.property_id;
           console.log("Comparando imagen:", {
-            imagen_id: img.property_id,
+            imagen_id: propertyIdFromImage,
             propiedad_id: property.propertyId,
-            coinciden: img.property_id === property.propertyId
+            coinciden: propertyIdFromImage === property.propertyId
           });
-          return img.property_id === property.propertyId;
+          return propertyIdFromImage === property.propertyId;
         });
 
         if (!propertyImage) {
@@ -272,12 +277,9 @@ export const Dashboard = () => {
         
         const doc = await generatePropertyPDF(property, propertyImage);
         const pdfOutput = await doc.output('arraybuffer');
-        
-        // Agregar el PDF al ZIP
         reportFolder.file(`propiedad_${property.propertyId}.pdf`, pdfOutput);
       }
 
-      // Generar y descargar el ZIP
       const content = await zip.generateAsync({type: "blob"});
       const url = window.URL.createObjectURL(content);
       const a = document.createElement('a');
