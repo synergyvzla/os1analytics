@@ -101,6 +101,9 @@ export const Dashboard = () => {
     const doc = new jsPDF();
     let yPos = 20;
 
+    console.log("Generando PDF para propiedad:", property.propertyId);
+    console.log("Datos de imagen encontrados:", propertyImage);
+
     // Título
     doc.setFontSize(16);
     doc.text('Reporte de Propiedad', 20, yPos);
@@ -148,25 +151,45 @@ export const Dashboard = () => {
     // Imagen de la propiedad
     if (propertyImage) {
       try {
+        console.log("Intentando cargar imagen desde URL:", propertyImage.image_url);
+        
         // Crear una imagen y esperar a que se cargue
         const img = new Image();
         img.crossOrigin = "Anonymous";  // Importante para imágenes de otros dominios
         
         await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
+          img.onload = () => {
+            console.log("Imagen cargada exitosamente");
+            resolve(null);
+          };
+          img.onerror = (error) => {
+            console.error("Error al cargar la imagen:", error);
+            reject(error);
+          };
           img.src = propertyImage.image_url;
         });
+
+        console.log("Dimensiones de la imagen:", { width: img.width, height: img.height });
 
         // Calcular dimensiones manteniendo la proporción
         const imgWidth = 170;  // Ancho máximo en el PDF
         const imgHeight = (img.height * imgWidth) / img.width;
         
-        doc.addImage(img, 'JPEG', 20, yPos, imgWidth, imgHeight);
+        console.log("Dimensiones calculadas para el PDF:", { width: imgWidth, height: imgHeight });
+        
+        try {
+          doc.addImage(img, 'PNG', 20, yPos, imgWidth, imgHeight);
+          console.log("Imagen agregada al PDF exitosamente");
+        } catch (addImageError) {
+          console.error("Error al agregar imagen al PDF:", addImageError);
+          doc.text('Error al agregar la imagen al PDF', 20, yPos);
+        }
       } catch (error) {
-        console.error('Error al agregar imagen al PDF:', error);
+        console.error('Error en el proceso de carga de imagen:', error);
         doc.text('Error al cargar la imagen de la propiedad', 20, yPos);
       }
+    } else {
+      console.log("No se encontró imagen para la propiedad:", property.propertyId);
     }
 
     return doc;
@@ -204,9 +227,16 @@ export const Dashboard = () => {
       // Generar todos los PDFs
       for (let i = 0; i < properties.length; i++) {
         const property = properties[i];
-        const propertyImageId = property.propertyId;
-        const propertyImage = propertyImages?.find(img => img.property_id === propertyImageId);
+        console.log("Buscando imagen para propiedad:", property.propertyId);
+        console.log("Imágenes disponibles:", propertyImages);
         
+        const propertyImage = propertyImages?.find(img => {
+          console.log("Comparando:", img.property_id, property.propertyId);
+          return img.property_id === property.propertyId;
+        });
+        
+        console.log("Imagen encontrada:", propertyImage);
+
         const doc = await generatePropertyPDF(property, propertyImage);
         const pdfOutput = await doc.output('arraybuffer');
         
