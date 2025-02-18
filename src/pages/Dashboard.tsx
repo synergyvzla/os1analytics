@@ -62,31 +62,20 @@ export const Dashboard = () => {
   const { data: propertyImages } = useQuery({
     queryKey: ['propertyImages'],
     queryFn: async () => {
+      console.log("Iniciando consulta de imágenes...");
       const { data, error } = await supabase
         .from('property_images')
         .select('*');
-      if (error) throw error;
+
+      if (error) {
+        console.error("Error al obtener imágenes:", error);
+        throw error;
+      }
+
+      console.log("Imágenes obtenidas:", data);
       return data;
     }
   });
-
-  const handleDownload = () => {
-    if (!properties || properties.length === 0) return;
-    
-    const headers = Object.keys(properties[0]).join(',');
-    const rows = properties.map(prop => Object.values(prop).join(','));
-    const csv = [headers, ...rows].join('\n');
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'propiedades.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  };
 
   const formatCurrency = (value: number | null) => {
     if (!value) return '$0';
@@ -236,19 +225,31 @@ export const Dashboard = () => {
     });
 
     try {
+      if (!propertyImages || propertyImages.length === 0) {
+        console.log("No hay imágenes disponibles en propertyImages");
+      } else {
+        console.log("Total de imágenes disponibles:", propertyImages.length);
+      }
+
       // Generar todos los PDFs
       for (let i = 0; i < properties.length; i++) {
         const property = properties[i];
-        console.log("Buscando imagen para propiedad:", property.propertyId);
-        console.log("Imágenes disponibles:", propertyImages);
+        console.log("Procesando propiedad:", property.propertyId);
         
         const propertyImage = propertyImages?.find(img => {
-          console.log("Comparando:", img.property_id, property.propertyId);
+          console.log("Comparando imagen:", {
+            imagen_id: img.property_id,
+            propiedad_id: property.propertyId
+          });
           return img.property_id === property.propertyId;
         });
-        
-        console.log("Imagen encontrada:", propertyImage);
 
+        if (!propertyImage) {
+          console.log("No se encontró imagen para la propiedad:", property.propertyId);
+        } else {
+          console.log("Imagen encontrada:", propertyImage);
+        }
+        
         const doc = await generatePropertyPDF(property, propertyImage);
         const pdfOutput = await doc.output('arraybuffer');
         
