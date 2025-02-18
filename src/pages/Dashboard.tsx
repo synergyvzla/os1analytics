@@ -282,6 +282,24 @@ export const Dashboard = () => {
     }
   };
 
+  const handleDownload = () => {
+    if (!properties || properties.length === 0) return;
+    
+    const headers = Object.keys(properties[0]).join(',');
+    const rows = properties.map(prop => Object.values(prop).join(','));
+    const csv = [headers, ...rows].join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'propiedades.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
   const renderPaginationButton = (page: number) => (
     <button
       key={page}
