@@ -104,6 +104,32 @@ export type Database = {
         }
         Relationships: []
       }
+      property_images: {
+        Row: {
+          created_at: string
+          image_url: string
+          property_id: string
+        }
+        Insert: {
+          created_at?: string
+          image_url: string
+          property_id: string
+        }
+        Update: {
+          created_at?: string
+          image_url?: string
+          property_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_images_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "Propiedades"
+            referencedColumns: ["propertyId"]
+          },
+        ]
+      }
       Propiedades: {
         Row: {
           address_city: string | null
