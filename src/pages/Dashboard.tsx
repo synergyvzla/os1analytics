@@ -19,6 +19,7 @@ import JSZip from 'jszip';
 import { toast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { generatePropertyPDF } from '@/utils/pdfUtils';
 
 export const Dashboard = () => {
   const {
@@ -101,107 +102,6 @@ export const Dashboard = () => {
     }).format(value);
   };
 
-  const generatePropertyPDF = async (property: any, propertyImage: any): Promise<jsPDF> => {
-    const doc = new jsPDF();
-    let yPos = 20;
-
-    console.log("Generando PDF para propiedad:", property.propertyId);
-    console.log("Datos de imagen encontrados:", propertyImage);
-
-    doc.setFontSize(16);
-    doc.text('Reporte de Propiedad', 20, yPos);
-    yPos += 15;
-
-    doc.setFontSize(12);
-    doc.text(`Dirección: ${property.address_formattedStreet || 'N/A'}`, 20, yPos);
-    doc.setTextColor(0, 0, 255);
-    doc.textWithLink('Ver en Google Maps', 150, yPos, {
-      url: `https://www.google.com/maps/search/?api=1&query=${property.address_latitude},${property.address_longitude}`
-    });
-    doc.setTextColor(0, 0, 0);
-    yPos += 10;
-
-    doc.text(`Valor estimado: ${formatCurrency(property.valuation_estimatedValue)}`, 20, yPos);
-    yPos += 15;
-
-    doc.text('Top 5 ráfagas de viento:', 20, yPos);
-    yPos += 10;
-    
-    if (property.top_gust_1) {
-      doc.text(`1. ${property.top_gust_1} mph (${new Date(property.top_gust_1_date).toLocaleDateString()})`, 25, yPos);
-      yPos += 7;
-    }
-    if (property.top_gust_2) {
-      doc.text(`2. ${property.top_gust_2} mph (${new Date(property.top_gust_2_date).toLocaleDateString()})`, 25, yPos);
-      yPos += 7;
-    }
-    if (property.top_gust_3) {
-      doc.text(`3. ${property.top_gust_3} mph (${new Date(property.top_gust_3_date).toLocaleDateString()})`, 25, yPos);
-      yPos += 7;
-    }
-    if (property.top_gust_4) {
-      doc.text(`4. ${property.top_gust_4} mph (${new Date(property.top_gust_4_date).toLocaleDateString()})`, 25, yPos);
-      yPos += 7;
-    }
-    if (property.top_gust_5) {
-      doc.text(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date).toLocaleDateString()})`, 25, yPos);
-      yPos += 15;
-    }
-
-    if (propertyImage) {
-      try {
-        console.log("Intentando cargar imagen desde URL:", propertyImage.image_url);
-        
-        const response = await fetch(propertyImage.image_url);
-        const blob = await response.blob();
-        const base64 = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
-
-        console.log("Imagen convertida a base64");
-
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        
-        await new Promise((resolve, reject) => {
-          img.onload = () => {
-            console.log("Imagen cargada exitosamente");
-            resolve(null);
-          };
-          img.onerror = (error) => {
-            console.error("Error al cargar la imagen:", error);
-            reject(error);
-          };
-          img.src = base64;
-        });
-
-        console.log("Dimensiones de la imagen:", { width: img.width, height: img.height });
-
-        const imgWidth = 170;
-        const imgHeight = (img.height * imgWidth) / img.width;
-        
-        console.log("Dimensiones calculadas para el PDF:", { width: imgWidth, height: imgHeight });
-        
-        try {
-          doc.addImage(base64, 'PNG', 20, yPos, imgWidth, imgHeight);
-          console.log("Imagen agregada al PDF exitosamente");
-        } catch (addImageError) {
-          console.error("Error al agregar imagen al PDF:", addImageError);
-          doc.text('Error al agregar la imagen al PDF', 20, yPos);
-        }
-      } catch (error) {
-        console.error('Error en el proceso de carga de imagen:', error);
-        doc.text('Error al cargar la imagen de la propiedad', 20, yPos);
-      }
-    } else {
-      console.log("No se encontró imagen para la propiedad:", property.propertyId);
-    }
-
-    return doc;
-  };
-
   const handleGeneratePDF = async () => {
     if (!properties || properties.length === 0) {
       toast({
@@ -230,32 +130,9 @@ export const Dashboard = () => {
     });
 
     try {
-      if (isLoadingImages) {
-        console.log("Esperando a que se carguen las imágenes...");
-        return;
-      }
-
       for (let i = 0; i < properties.length; i++) {
         const property = properties[i];
-        console.log("Procesando propiedad:", property.propertyId);
-        
-        const propertyImage = propertyImages?.find(img => {
-          const propertyIdFromImage = img.property_id;
-          console.log("Comparando IDs:", {
-            imagen_id_sin_extension: propertyIdFromImage,
-            propiedad_id: property.propertyId,
-            coinciden: propertyIdFromImage === property.propertyId
-          });
-          return propertyIdFromImage === property.propertyId;
-        });
-
-        if (!propertyImage) {
-          console.log("No se encontró imagen para la propiedad:", property.propertyId);
-        } else {
-          console.log("Imagen encontrada:", propertyImage);
-        }
-        
-        const doc = await generatePropertyPDF(property, propertyImage);
+        const doc = await generatePropertyPDF(property);
         const pdfOutput = await doc.output('arraybuffer');
         reportFolder.file(`propiedad_${property.propertyId}.pdf`, pdfOutput);
       }
