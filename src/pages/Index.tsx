@@ -2,14 +2,12 @@
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { MessageCircle } from "lucide-react";
-import { Toaster } from "@/components/ui/sonner";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
       <Hero />
-      <Toaster />
       <a
         href="https://wa.me/584242519717"
         target="_blank"
