@@ -1,4 +1,3 @@
-
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -100,25 +99,35 @@ export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) 
   });
 
   const markers = useMemo(() => {
-    if (!properties) return [];
+    if (!window.google) return [];
 
-    return properties.map((property) => ({
+    const getMarkerIcon = (score: number | null) => {
+      let color = '#ea384c'; // Default rojo para score 1
+      if (score === 2) {
+        color = '#F97316'; // Naranja para score 2
+      } else if (score === 3) {
+        color = '#008f39'; // Verde para score 3
+      }
+
+      return {
+        path: window.google.maps.SymbolPath.CIRCLE,
+        fillColor: color,
+        fillOpacity: 0.9,
+        strokeWeight: 1,
+        strokeColor: '#ffffff',
+        scale: 10,
+      };
+    };
+
+    return properties?.map((property) => ({
       position: {
         lat: property.address_latitude || 0,
         lng: property.address_longitude || 0,
       },
       title: property.address_formattedStreet || '',
-      icon: {
-        path: 'M 0,0 m -10,0 a 10,10 0 1,0 20,0 a 10,10 0 1,0 -20,0',
-        fillColor: property.combined_score === 2 ? '#F97316' : 
-                  property.combined_score === 3 ? '#008f39' : '#ea384c',
-        fillOpacity: 0.9,
-        strokeWeight: 1,
-        strokeColor: '#ffffff',
-        scale: 1,
-      },
+      icon: getMarkerIcon(property.combined_score),
       property: property,
-    }));
+    })) || [];
   }, [properties]);
 
   if (isLoadingKey) {
