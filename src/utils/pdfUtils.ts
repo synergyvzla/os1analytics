@@ -34,10 +34,10 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   
   // Agregar borde superior verde mejorado
   doc.setDrawColor(218, 242, 31); // Color #daf21f
-  doc.setLineWidth(5); // Borde más grueso
-  doc.line(0, 0, 210, 0); // Línea horizontal desde el borde superior
+  doc.setFillColor(218, 242, 31);
+  doc.rect(0, 0, 210, 15, 'F'); // Dibuja un rectángulo relleno de 1.5 cm de alto
   
-  let yPos = 20;
+  let yPos = 25; // Aumentamos la posición inicial del contenido para dar espacio al borde
 
   console.log("Generando PDF para propiedad:", property.propertyId);
 
