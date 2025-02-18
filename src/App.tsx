@@ -1,31 +1,22 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { Toaster } from "@/components/ui/sonner"
-import Index from "@/pages/Index"
-import { Login } from "@/pages/Login"
-import { Dashboard } from "@/pages/Dashboard"
-import { Documentation } from "@/pages/Documentation"
-import { Profile } from "@/pages/Profile"
-import CRM from "@/pages/CRM"
 
-const queryClient = new QueryClient()
+import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Routes } from "./Routes";
+import { ThemeProvider } from "next-themes";
+import "./App.css";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/docs" element={<Documentation />} />
-          <Route path="/crm" element={<CRM />} />
-          <Route path="/profile" element={<Profile />} />
-        </Routes>
-      </Router>
-      <Toaster />
-    </QueryClientProvider>
-  )
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider attribute="class" defaultTheme="light">
+          <Routes />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
