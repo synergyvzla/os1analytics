@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { CityFilter } from "@/components/dashboard/CityFilter";
@@ -98,81 +97,79 @@ export const Dashboard = () => {
     }).format(value);
   };
 
-  const generatePropertyPDF = async (property: any, propertyImage: any) => {
-    return new Promise(async (resolve) => {
-      const doc = new jsPDF();
-      let yPos = 20;
+  const generatePropertyPDF = async (property: any, propertyImage: any): Promise<jsPDF> => {
+    const doc = new jsPDF();
+    let yPos = 20;
 
-      // Título
-      doc.setFontSize(16);
-      doc.text('Reporte de Propiedad', 20, yPos);
-      yPos += 15;
+    // Título
+    doc.setFontSize(16);
+    doc.text('Reporte de Propiedad', 20, yPos);
+    yPos += 15;
 
-      // Dirección y link de Google Maps
-      doc.setFontSize(12);
-      doc.text(`Dirección: ${property.address_formattedStreet || 'N/A'}`, 20, yPos);
-      doc.setTextColor(0, 0, 255);
-      doc.textWithLink('Ver en Google Maps', 150, yPos, {
-        url: `https://www.google.com/maps/search/?api=1&query=${property.address_latitude},${property.address_longitude}`
-      });
-      doc.setTextColor(0, 0, 0);
-      yPos += 10;
-
-      // Valor estimado
-      doc.text(`Valor estimado: ${formatCurrency(property.valuation_estimatedValue)}`, 20, yPos);
-      yPos += 15;
-
-      // Top 5 ráfagas
-      doc.text('Top 5 ráfagas de viento:', 20, yPos);
-      yPos += 10;
-      
-      if (property.top_gust_1) {
-        doc.text(`1. ${property.top_gust_1} mph (${new Date(property.top_gust_1_date).toLocaleDateString()})`, 25, yPos);
-        yPos += 7;
-      }
-      if (property.top_gust_2) {
-        doc.text(`2. ${property.top_gust_2} mph (${new Date(property.top_gust_2_date).toLocaleDateString()})`, 25, yPos);
-        yPos += 7;
-      }
-      if (property.top_gust_3) {
-        doc.text(`3. ${property.top_gust_3} mph (${new Date(property.top_gust_3_date).toLocaleDateString()})`, 25, yPos);
-        yPos += 7;
-      }
-      if (property.top_gust_4) {
-        doc.text(`4. ${property.top_gust_4} mph (${new Date(property.top_gust_4_date).toLocaleDateString()})`, 25, yPos);
-        yPos += 7;
-      }
-      if (property.top_gust_5) {
-        doc.text(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date).toLocaleDateString()})`, 25, yPos);
-        yPos += 15;
-      }
-
-      // Imagen de la propiedad
-      if (propertyImage) {
-        try {
-          // Crear una imagen y esperar a que se cargue
-          const img = new Image();
-          img.crossOrigin = "Anonymous";  // Importante para imágenes de otros dominios
-          
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = propertyImage.image_url;
-          });
-
-          // Calcular dimensiones manteniendo la proporción
-          const imgWidth = 170;  // Ancho máximo en el PDF
-          const imgHeight = (img.height * imgWidth) / img.width;
-          
-          doc.addImage(img, 'JPEG', 20, yPos, imgWidth, imgHeight);
-        } catch (error) {
-          console.error('Error al agregar imagen al PDF:', error);
-          doc.text('Error al cargar la imagen de la propiedad', 20, yPos);
-        }
-      }
-
-      resolve(doc);
+    // Dirección y link de Google Maps
+    doc.setFontSize(12);
+    doc.text(`Dirección: ${property.address_formattedStreet || 'N/A'}`, 20, yPos);
+    doc.setTextColor(0, 0, 255);
+    doc.textWithLink('Ver en Google Maps', 150, yPos, {
+      url: `https://www.google.com/maps/search/?api=1&query=${property.address_latitude},${property.address_longitude}`
     });
+    doc.setTextColor(0, 0, 0);
+    yPos += 10;
+
+    // Valor estimado
+    doc.text(`Valor estimado: ${formatCurrency(property.valuation_estimatedValue)}`, 20, yPos);
+    yPos += 15;
+
+    // Top 5 ráfagas
+    doc.text('Top 5 ráfagas de viento:', 20, yPos);
+    yPos += 10;
+    
+    if (property.top_gust_1) {
+      doc.text(`1. ${property.top_gust_1} mph (${new Date(property.top_gust_1_date).toLocaleDateString()})`, 25, yPos);
+      yPos += 7;
+    }
+    if (property.top_gust_2) {
+      doc.text(`2. ${property.top_gust_2} mph (${new Date(property.top_gust_2_date).toLocaleDateString()})`, 25, yPos);
+      yPos += 7;
+    }
+    if (property.top_gust_3) {
+      doc.text(`3. ${property.top_gust_3} mph (${new Date(property.top_gust_3_date).toLocaleDateString()})`, 25, yPos);
+      yPos += 7;
+    }
+    if (property.top_gust_4) {
+      doc.text(`4. ${property.top_gust_4} mph (${new Date(property.top_gust_4_date).toLocaleDateString()})`, 25, yPos);
+      yPos += 7;
+    }
+    if (property.top_gust_5) {
+      doc.text(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date).toLocaleDateString()})`, 25, yPos);
+      yPos += 15;
+    }
+
+    // Imagen de la propiedad
+    if (propertyImage) {
+      try {
+        // Crear una imagen y esperar a que se cargue
+        const img = new Image();
+        img.crossOrigin = "Anonymous";  // Importante para imágenes de otros dominios
+        
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = propertyImage.image_url;
+        });
+
+        // Calcular dimensiones manteniendo la proporción
+        const imgWidth = 170;  // Ancho máximo en el PDF
+        const imgHeight = (img.height * imgWidth) / img.width;
+        
+        doc.addImage(img, 'JPEG', 20, yPos, imgWidth, imgHeight);
+      } catch (error) {
+        console.error('Error al agregar imagen al PDF:', error);
+        doc.text('Error al cargar la imagen de la propiedad', 20, yPos);
+      }
+    }
+
+    return doc;
   };
 
   const handleGeneratePDF = async () => {
