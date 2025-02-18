@@ -204,7 +204,8 @@ export const Dashboard = () => {
       // Generar todos los PDFs
       for (let i = 0; i < properties.length; i++) {
         const property = properties[i];
-        const propertyImage = propertyImages?.find(img => img.property_id === property.propertyId);
+        const propertyImageId = property.propertyId;
+        const propertyImage = propertyImages?.find(img => img.property_id === propertyImageId);
         
         const doc = await generatePropertyPDF(property, propertyImage);
         const pdfOutput = await doc.output('arraybuffer');
