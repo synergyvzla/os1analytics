@@ -27,7 +27,10 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [userEmail, setUserEmail] = useState<string | null>(null)
-  const { isSuperUser } = useRole();
+  const { isSuperUser, isLoading } = useRole();
+
+  console.log("Is super user:", isSuperUser);
+  console.log("Is loading:", isLoading);
 
   useEffect(() => {
     const getUser = async () => {
@@ -51,6 +54,10 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   }
 
   const isActive = (path: string) => location.pathname === path
+
+  if (isLoading) {
+    return <div>Cargando...</div>;
+  }
 
   return (
     <SidebarProvider>
