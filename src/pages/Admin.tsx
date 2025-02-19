@@ -23,34 +23,29 @@ export default function Admin() {
   const { data: users, isLoading: isUsersLoading, refetch: refetchUsers } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      const { data: profiles } = await supabase
+      const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*');
 
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('*');
-
-      return profiles?.map(profile => ({
-        ...profile,
-        role: roles?.find(r => r.user_id === profile.id)?.role || 'normal'
-      })) || [];
+      if (error) throw error;
+      return profiles || [];
     }
   });
 
-  const handleRoleChange = async (userId: string, newRole: 'normal' | 'super') => {
+  const handleRoleChange = async (userId: string, isSuperUser: boolean) => {
     try {
       setLoading(true);
       const { error } = await supabase
-        .from('user_roles')
-        .upsert({ user_id: userId, role: newRole });
+        .from('profiles')
+        .update({ is_super_user: !isSuperUser })
+        .eq('id', userId);
 
       if (error) throw error;
 
       toast.success('Rol actualizado correctamente');
       refetchUsers();
     } catch (error) {
-      console.error('Error al actualizar rol:', error);
+      console.error('Error al actualizar el rol:', error);
       toast.error('Error al actualizar el rol');
     } finally {
       setLoading(false);
@@ -90,18 +85,15 @@ export default function Admin() {
                   <TableRow key={user.id}>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.full_name}</TableCell>
-                    <TableCell>{user.role}</TableCell>
+                    <TableCell>{user.is_super_user ? 'Super' : 'Normal'}</TableCell>
                     <TableCell>
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={loading}
-                        onClick={() => handleRoleChange(
-                          user.id,
-                          user.role === 'super' ? 'normal' : 'super'
-                        )}
+                        onClick={() => handleRoleChange(user.id, user.is_super_user)}
                       >
-                        {user.role === 'super' ? 'Hacer Normal' : 'Hacer Super'}
+                        {user.is_super_user ? 'Hacer Normal' : 'Hacer Super'}
                       </Button>
                     </TableCell>
                   </TableRow>
