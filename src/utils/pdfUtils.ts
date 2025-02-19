@@ -35,12 +35,30 @@ const formatAddress = (property: Property): string => {
 async function getTemplateFromSupabase(): Promise<ArrayBuffer | null> {
   try {
     console.log('Intentando obtener el template desde Supabase...');
+    
+    // Verificar si podemos listar el contenido del bucket primero
+    const { data: bucketFiles, error: bucketError } = await supabase.storage
+      .from('pdf-templates')
+      .list();
+
+    if (bucketError) {
+      console.error('Error al listar el bucket:', bucketError);
+      return null;
+    }
+
+    console.log('Archivos en el bucket:', bucketFiles);
+
     const { data, error } = await supabase.storage
       .from('pdf-templates')
       .download('template.pdf');
 
     if (error) {
       console.error('Error downloading template:', error);
+      console.error('Error details:', {
+        message: error.message,
+        statusCode: error.statusCode,
+        name: error.name
+      });
       return null;
     }
 
