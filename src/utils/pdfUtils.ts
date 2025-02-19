@@ -93,13 +93,13 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   // Formato más elegante para las redes sociales
   doc.setFont('helvetica', 'bold');
   const socialText = '@welldonemitigation';
-  const socialWidth = doc.getStringUnitWidth(socialText) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+  const socialWidth = doc.getStringUnitWidth(socialText) * 12 / doc.internal.scaleFactor;
   doc.text(socialText, pageWidth - 20 - socialWidth, footerY - 8);
   
   // URL del sitio web
   doc.setFont('helvetica', 'normal');
   const webText = 'www.welldonemitigation.com';
-  const webWidth = doc.getStringUnitWidth(webText) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+  const webWidth = doc.getStringUnitWidth(webText) * 12 / doc.internal.scaleFactor;
   doc.text(webText, pageWidth - 20 - webWidth, footerY);
 
   // Intentar agregar la imagen
