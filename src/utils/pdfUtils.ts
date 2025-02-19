@@ -83,13 +83,24 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   }
 
   // Footer con información de redes sociales
-  doc.setFontSize(10);
+  doc.setFontSize(12);
   doc.setTextColor(0, 0, 0);
   
-  // Texto de redes sociales alineado a la derecha
+  // Centrar y dar formato al texto del footer
   const footerY = 290;
-  doc.text('@welldonemitigation', 160, footerY - 8);
-  doc.text('www.welldonemitigation.com', 160, footerY);
+  const pageWidth = doc.internal.pageSize.width;
+  
+  // Formato más elegante para las redes sociales
+  doc.setFont('helvetica', 'bold');
+  const socialText = '@welldonemitigation';
+  const socialWidth = doc.getStringUnitWidth(socialText) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+  doc.text(socialText, pageWidth - 20 - socialWidth, footerY - 8);
+  
+  // URL del sitio web
+  doc.setFont('helvetica', 'normal');
+  const webText = 'www.welldonemitigation.com';
+  const webWidth = doc.getStringUnitWidth(webText) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+  doc.text(webText, pageWidth - 20 - webWidth, footerY);
 
   // Intentar agregar la imagen
   try {
