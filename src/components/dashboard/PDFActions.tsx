@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { FileText, Download } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import JSZip from 'jszip';
 import { generatePropertyPDF } from '@/utils/pdfUtils';
@@ -38,8 +37,7 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
     let processedProperties = 0;
 
     // Crear un único toast que actualizaremos
-    const toastId = toast({
-      id: 'pdf-progress',
+    const progressToast = toast({
       title: "Generando reportes",
       description: (
         <div className="w-full">
@@ -64,8 +62,7 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
         const progress = (processedProperties / totalProperties) * 100;
         
         // Actualizar el toast existente con el nuevo progreso
-        toast({
-          id: 'pdf-progress',
+        progressToast.update({
           title: "Generando reportes",
           description: (
             <div className="w-full">
