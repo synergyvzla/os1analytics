@@ -1,3 +1,4 @@
+
 import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
 import { PDFDocument } from 'pdf-lib';
@@ -87,9 +88,6 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   }
 
   try {
-    // Crear un nuevo documento PDF directamente
-    const doc = new jsPDF();
-    
     // Crear un nuevo PDFDocument con pdf-lib para leer el template
     const pdfDoc = await PDFDocument.load(templateBuffer);
     const pages = pdfDoc.getPages();
@@ -165,9 +163,13 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
     // Guardar las modificaciones del template
     const modifiedPdfBytes = await pdfDoc.save();
     
-    // Convertir a base64 de manera más eficiente
+    // Convertir a base64 usando una función compatible con el navegador
     const uint8Array = new Uint8Array(modifiedPdfBytes);
-    const base64String = Buffer.from(uint8Array).toString('base64');
+    const chunks = [];
+    for (let i = 0; i < uint8Array.length; i++) {
+        chunks.push(String.fromCharCode(uint8Array[i]));
+    }
+    const base64String = btoa(chunks.join(''));
     
     // Crear un nuevo documento PDF
     const finalDoc = new jsPDF();
