@@ -10,7 +10,13 @@ export const useRole = () => {
     queryFn: async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return false;
+        
+        if (!user) {
+          console.log("No user found");
+          return false;
+        }
+        
+        console.log("Checking super user status for:", user.email);
         
         const { data: profile, error } = await supabase
           .from('profiles')
@@ -23,7 +29,8 @@ export const useRole = () => {
           return false;
         }
 
-        return profile?.is_super_user || false;
+        console.log("Profile data:", profile);
+        return Boolean(profile?.is_super_user);
       } catch (error) {
         console.error("Unexpected error in useRole:", error);
         return false;
