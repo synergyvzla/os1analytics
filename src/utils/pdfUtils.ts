@@ -47,15 +47,15 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.setFillColor(235, 221, 204);
   doc.rect(0, 265, 210, 32, 'F');
   
-  let yPos = 35; // Aumentado el espacio inicial
+  let yPos = 35;
 
   // Título centrado y con fuente más profesional
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22); // Título ligeramente más grande
+  doc.setFontSize(22);
   const title = 'Reporte de Daño de Propiedad';
   const titleWidth = doc.getStringUnitWidth(title) * 22 / doc.internal.scaleFactor;
   doc.text(title, (pageWidth - titleWidth) / 2, yPos);
-  yPos += 25; // Más espacio después del título
+  yPos += 25;
 
   // Información básica con mejor espaciado
   doc.setFontSize(12);
@@ -103,17 +103,7 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
     yPos += 20;
   }
 
-  // Mensaje de contacto con mejor espaciado y formato
-  const contactMessage = 'Si está interesado en programar una inspección detallada, por favor contáctenos al 0800-458-6893';
-  const emailMessage = 'o al mail: customerservice@welldonemitigation.com';
-  
-  doc.setFont('helvetica', 'normal');
-  doc.text(contactMessage, pageCenter, yPos, { align: 'center' });
-  yPos += 8;
-  doc.text(emailMessage, pageCenter, yPos, { align: 'center' });
-  yPos += 20;
-
-  // Intentar agregar la imagen centrada
+  // Intentar agregar la imagen centrada primero
   try {
     const fileName = `${property.propertyId}.png`;
     const { data: imageData, error } = await supabase.storage
@@ -151,8 +141,28 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
     const xPos = (pageWidth - imgWidth) / 2;
       
     doc.addImage(base64, 'PNG', xPos, yPos, imgWidth, imgHeight);
+    yPos += imgHeight + 15; // Añadir espacio después de la imagen
+
+    // Mensaje de contacto justo después de la imagen
+    const contactMessage = 'Si está interesado en programar una inspección detallada, por favor contáctenos al 0800-458-6893';
+    const emailMessage = 'o al mail: customerservice@welldonemitigation.com';
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text(contactMessage, pageCenter, yPos, { align: 'center' });
+    yPos += 8;
+    doc.text(emailMessage, pageCenter, yPos, { align: 'center' });
+
   } catch (error) {
     console.error('Error al procesar la imagen de la propiedad:', error);
+    
+    // Si hay error con la imagen, aún mostrar el mensaje de contacto
+    const contactMessage = 'Si está interesado en programar una inspección detallada, por favor contáctenos al 0800-458-6893';
+    const emailMessage = 'o al mail: customerservice@welldonemitigation.com';
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text(contactMessage, pageCenter, yPos, { align: 'center' });
+    yPos += 8;
+    doc.text(emailMessage, pageCenter, yPos, { align: 'center' });
   }
 
   // Footer con información de redes sociales
