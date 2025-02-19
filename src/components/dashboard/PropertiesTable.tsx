@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -26,14 +27,14 @@ export function DataTable<TData, TValue>({
   return (
     <div className="w-full border rounded-lg overflow-hidden">
       <div className="overflow-auto" style={{ maxHeight: '500px' }}>
-        <table className="w-full border-collapse text-xs">
-          <thead className="bg-white" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
+        <table className="w-full caption-bottom text-sm">
+          <thead className="bg-white border-b border-gray-200" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="h-10 px-2 text-left align-middle font-medium text-gray-500 bg-gray-50 border-b"
+                    className="h-12 px-4 text-left align-middle font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors"
                   >
                     {header.isPlaceholder
                       ? null
@@ -48,13 +49,15 @@ export function DataTable<TData, TValue>({
           </thead>
           <tbody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row, rowIndex) => (
                 <tr
                   key={row.id}
-                  className="border-b hover:bg-gray-50"
+                  className={`border-b hover:bg-gray-50 transition-colors ${
+                    rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                  }`}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="p-2">
+                    <td key={cell.id} className="p-4">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
