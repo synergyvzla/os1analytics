@@ -5,11 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 interface Property {
   propertyId: string;
   address_formattedStreet: string | null;
+  address_street: string | null;
+  address_houseNumber: number | null;
   address_city: string | null;
   address_zip: number | null;
   address_latitude: number | null;
   address_longitude: number | null;
   valuation_estimatedValue: number | null;
+  owner_fullName: string | null;
   top_gust_1: number | null;
   top_gust_1_date: string | null;
   top_gust_2: number | null;
@@ -22,20 +25,12 @@ interface Property {
   top_gust_5_date: string | null;
 }
 
-const formatCurrency = (value: number | null) => {
-  if (!value) return '$0';
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0
-  }).format(value);
-};
-
 const formatAddress = (property: Property): string => {
-  const street = property.address_formattedStreet || 'N/A';
+  const houseNumber = property.address_houseNumber || 'N/A';
+  const street = property.address_street || 'N/A';
   const city = property.address_city || 'N/A';
   const zip = property.address_zip || 'N/A';
-  return `${street}, ${city}, FL ${zip}`;
+  return `${houseNumber} ${street}, ${city}, FL ${zip}`;
 };
 
 export const generatePropertyPDF = async (property: Property): Promise<jsPDF> => {
@@ -63,12 +58,22 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   yPos += 20;
 
   // Información básica
-  doc.setFont('helvetica', 'normal');
   doc.setFontSize(12);
-  doc.text(`Dirección: ${formatAddress(property)}`, 20, yPos);
+  
+  // Dirección en negrita
+  doc.setFont('helvetica', 'bold');
+  doc.text('Dirección:', 20, yPos);
+  doc.setFont('helvetica', 'normal');
+  const addressStart = doc.getStringUnitWidth('Dirección: ') * 12 / doc.internal.scaleFactor;
+  doc.text(formatAddress(property), 20 + addressStart, yPos);
   yPos += 10;
 
-  doc.text(`Valor estimado: ${formatCurrency(property.valuation_estimatedValue)}`, 20, yPos);
+  // Propietario en negrita
+  doc.setFont('helvetica', 'bold');
+  doc.text('Propietario(s):', 20, yPos);
+  doc.setFont('helvetica', 'normal');
+  const ownerStart = doc.getStringUnitWidth('Propietario(s): ') * 12 / doc.internal.scaleFactor;
+  doc.text(property.owner_fullName || 'N/A', 20 + ownerStart, yPos);
   yPos += 15;
 
   // Información de ráfagas
@@ -93,8 +98,12 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   }
   if (property.top_gust_5) {
     doc.text(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date!).toLocaleDateString()})`, 25, yPos);
-    yPos += 7;
+    yPos += 20;
   }
+
+  // Mensaje de contacto
+  const contactMessage = 'Si está interesado en programar una inspección detallada, por favor contáctenos al 0800-458-6893';
+  doc.text(contactMessage, 20, yPos);
 
   // Footer con información de redes sociales
   doc.setFontSize(12);
