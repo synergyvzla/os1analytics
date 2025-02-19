@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { FileText, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 import JSZip from 'jszip';
 import { generatePropertyPDF } from '@/utils/pdfUtils';
 
@@ -11,6 +12,9 @@ interface PDFActionsProps {
 }
 
 export const PDFActions = ({ properties }: PDFActionsProps) => {
+  const [generatingPDFs, setGeneratingPDFs] = useState(false);
+  const [progress, setProgress] = useState(0);
+
   const handleGeneratePDF = async () => {
     if (!properties || properties.length === 0) {
       toast({
@@ -33,16 +37,18 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
       return;
     }
 
-    toast({
-      title: "Iniciando generación",
-      description: "Comenzando a generar los reportes PDF...",
-    });
+    setGeneratingPDFs(true);
+    setProgress(0);
 
     try {
-      for (const property of properties) {
+      for (let i = 0; i < properties.length; i++) {
+        const property = properties[i];
         const doc = await generatePropertyPDF(property);
         const pdfOutput = await doc.output('arraybuffer');
         reportFolder.file(`propiedad_${property.propertyId}.pdf`, pdfOutput);
+        
+        // Actualizar el progreso
+        setProgress(((i + 1) / properties.length) * 100);
       }
 
       const content = await zip.generateAsync({type: "blob"});
@@ -66,6 +72,9 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
         description: "Hubo un error al generar los reportes",
         variant: "destructive",
       });
+    } finally {
+      setGeneratingPDFs(false);
+      setProgress(0);
     }
   };
 
@@ -88,22 +97,33 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
   };
 
   return (
-    <div className="flex justify-end mt-4 gap-2">
-      <Button 
-        onClick={handleDownload}
-        className="gap-2"
-      >
-        <Download className="h-4 w-4" />
-        Descarga CSV
-      </Button>
-      <Button 
-        onClick={handleGeneratePDF}
-        className="gap-2"
-        variant="secondary"
-      >
-        <FileText className="h-4 w-4" />
-        Generar PDF
-      </Button>
+    <div className="flex flex-col gap-4">
+      {generatingPDFs && (
+        <div className="w-full space-y-2">
+          <Progress value={progress} className="w-full h-2" />
+          <p className="text-sm text-gray-500">
+            Generando reportes PDF... {Math.round(progress)}%
+          </p>
+        </div>
+      )}
+      <div className="flex justify-end gap-2">
+        <Button 
+          onClick={handleDownload}
+          className="gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Descarga CSV
+        </Button>
+        <Button 
+          onClick={handleGeneratePDF}
+          className="gap-2"
+          variant="secondary"
+          disabled={generatingPDFs}
+        >
+          <FileText className="h-4 w-4" />
+          Generar PDF
+        </Button>
+      </div>
     </div>
   );
 };
