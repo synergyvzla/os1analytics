@@ -34,6 +34,8 @@ const formatAddress = (property: Property): string => {
 
 export const generatePropertyPDF = async (property: Property): Promise<jsPDF> => {
   const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  const pageCenter = pageWidth / 2;
   
   // Agregar borde superior verde
   doc.setDrawColor(218, 242, 31);
@@ -45,72 +47,73 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.setFillColor(235, 221, 204);
   doc.rect(0, 265, 210, 32, 'F');
   
-  let yPos = 30;
+  let yPos = 35; // Aumentado el espacio inicial
 
   // Título centrado y con fuente más profesional
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
+  doc.setFontSize(22); // Título ligeramente más grande
   const title = 'Reporte de Daño de Propiedad';
-  const titleWidth = doc.getStringUnitWidth(title) * 20 / doc.internal.scaleFactor;
-  const pageWidth = doc.internal.pageSize.width;
+  const titleWidth = doc.getStringUnitWidth(title) * 22 / doc.internal.scaleFactor;
   doc.text(title, (pageWidth - titleWidth) / 2, yPos);
-  yPos += 20;
+  yPos += 25; // Más espacio después del título
 
-  // Información básica
+  // Información básica con mejor espaciado
   doc.setFontSize(12);
   
   // Dirección en negrita
   doc.setFont('helvetica', 'bold');
   doc.text('Dirección:', 20, yPos);
   doc.setFont('helvetica', 'normal');
-  const addressStart = doc.getStringUnitWidth('Dirección: ') * 12 / doc.internal.scaleFactor + 5; // Añadido espacio extra
+  const addressStart = doc.getStringUnitWidth('Dirección: ') * 12 / doc.internal.scaleFactor + 8;
   doc.text(formatAddress(property), 20 + addressStart, yPos);
-  yPos += 10;
+  yPos += 15;
 
   // Propietario en negrita
   doc.setFont('helvetica', 'bold');
   doc.text('Propietario(s):', 20, yPos);
   doc.setFont('helvetica', 'normal');
-  const ownerStart = doc.getStringUnitWidth('Propietario(s): ') * 12 / doc.internal.scaleFactor + 5;
+  const ownerStart = doc.getStringUnitWidth('Propietario(s): ') * 12 / doc.internal.scaleFactor + 8;
   doc.text(property.owner_fullName || 'N/A', 20 + ownerStart, yPos);
-  yPos += 10; // Ajustado para mantener consistencia
+  yPos += 15;
 
-  // Información de ráfagas
+  // Información de ráfagas con mejor formato
   doc.setFont('helvetica', 'bold');
   doc.text('Principales ráfagas de viento registradas:', 20, yPos);
-  yPos += 10;
+  yPos += 12;
   
   doc.setFont('helvetica', 'normal');
   if (property.top_gust_1) {
-    doc.text(`1. ${property.top_gust_1} mph (${new Date(property.top_gust_1_date!).toLocaleDateString()})`, 25, yPos);
+    doc.text(`1. ${property.top_gust_1} mph (${new Date(property.top_gust_1_date!).toLocaleDateString()})`, 30, yPos);
     yPos += 8;
   }
   if (property.top_gust_2) {
-    doc.text(`2. ${property.top_gust_2} mph (${new Date(property.top_gust_2_date!).toLocaleDateString()})`, 25, yPos);
+    doc.text(`2. ${property.top_gust_2} mph (${new Date(property.top_gust_2_date!).toLocaleDateString()})`, 30, yPos);
     yPos += 8;
   }
   if (property.top_gust_3) {
-    doc.text(`3. ${property.top_gust_3} mph (${new Date(property.top_gust_3_date!).toLocaleDateString()})`, 25, yPos);
+    doc.text(`3. ${property.top_gust_3} mph (${new Date(property.top_gust_3_date!).toLocaleDateString()})`, 30, yPos);
     yPos += 8;
   }
   if (property.top_gust_4) {
-    doc.text(`4. ${property.top_gust_4} mph (${new Date(property.top_gust_4_date!).toLocaleDateString()})`, 25, yPos);
+    doc.text(`4. ${property.top_gust_4} mph (${new Date(property.top_gust_4_date!).toLocaleDateString()})`, 30, yPos);
     yPos += 8;
   }
   if (property.top_gust_5) {
-    doc.text(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date!).toLocaleDateString()})`, 25, yPos);
-    yPos += 25;
+    doc.text(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date!).toLocaleDateString()})`, 30, yPos);
+    yPos += 20;
   }
 
-  // Mensaje de contacto con teléfono y email
+  // Mensaje de contacto con mejor espaciado y formato
   const contactMessage = 'Si está interesado en programar una inspección detallada, por favor contáctenos al 0800-458-6893';
   const emailMessage = 'o al mail: customerservice@welldonemitigation.com';
-  doc.text(contactMessage, 20, yPos);
+  
+  doc.setFont('helvetica', 'normal');
+  doc.text(contactMessage, pageCenter, yPos, { align: 'center' });
   yPos += 8;
-  doc.text(emailMessage, 20, yPos);
-  yPos += 15;
+  doc.text(emailMessage, pageCenter, yPos, { align: 'center' });
+  yPos += 20;
 
-  // Intentar agregar la imagen
+  // Intentar agregar la imagen centrada
   try {
     const fileName = `${property.propertyId}.png`;
     const { data: imageData, error } = await supabase.storage
@@ -142,32 +145,30 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
       img.src = base64;
     });
 
-    const imgWidth = 85;
+    // Ajustar tamaño y posición de la imagen
+    const imgWidth = 100;
     const imgHeight = (img.height * imgWidth) / img.width;
+    const xPos = (pageWidth - imgWidth) / 2;
       
-    doc.addImage(base64, 'PNG', 20, yPos, imgWidth, imgHeight);
+    doc.addImage(base64, 'PNG', xPos, yPos, imgWidth, imgHeight);
   } catch (error) {
     console.error('Error al procesar la imagen de la propiedad:', error);
   }
 
   // Footer con información de redes sociales
-  doc.setFontSize(12);
+  doc.setFontSize(11);
   doc.setTextColor(0, 0, 0);
   
-  // Centrar y dar formato al texto del footer
   const footerY = 285;
   
   // Formato más elegante para las redes sociales
   doc.setFont('helvetica', 'bold');
   const socialText = '@welldonemitigation';
-  const socialWidth = doc.getStringUnitWidth(socialText) * 12 / doc.internal.scaleFactor;
-  doc.text(socialText, pageWidth - 20 - socialWidth, footerY - 8);
-  
-  // URL del sitio web
-  doc.setFont('helvetica', 'normal');
   const webText = 'www.welldonemitigation.com';
-  const webWidth = doc.getStringUnitWidth(webText) * 12 / doc.internal.scaleFactor;
-  doc.text(webText, pageWidth - 20 - webWidth, footerY);
+  
+  doc.text(socialText, pageCenter, footerY - 8, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.text(webText, pageCenter, footerY, { align: 'center' });
 
   return doc;
 };
