@@ -18,9 +18,10 @@ export const useRole = () => {
         
         console.log("Checking super user status for:", user.email);
         
+        // Forzamos que no use la caché de Supabase
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('is_super_user')
+          .select('is_super_user, email')
           .eq('id', user.id)
           .maybeSingle();
 
@@ -30,13 +31,17 @@ export const useRole = () => {
         }
 
         console.log("Profile data:", profile);
-        return Boolean(profile?.is_super_user);
+        const isSuperUser = Boolean(profile?.is_super_user);
+        console.log("Is super user:", isSuperUser);
+        return isSuperUser;
       } catch (error) {
         console.error("Unexpected error in useRole:", error);
         return false;
       }
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 0, // Deshabilitamos el caché
+    refetchOnMount: true, // Forzamos refetch al montar
+    refetchOnWindowFocus: true, // Refetch cuando la ventana obtiene el foco
   });
 
   return {
