@@ -1,17 +1,21 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { FileText, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { downloadPropertyReports } from '@/utils/pdfUtils';
+
 interface PDFActionsProps {
   properties: any[];
 }
+
 export const PDFActions = ({
   properties
 }: PDFActionsProps) => {
   const [generatingPDFs, setGeneratingPDFs] = useState(false);
   const [progress, setProgress] = useState(0);
+
   const handleGeneratePDF = async () => {
     if (!properties || properties.length === 0) {
       toast({
@@ -54,6 +58,7 @@ export const PDFActions = ({
       setProgress(0);
     }
   };
+
   const handleDownload = () => {
     if (!properties || properties.length === 0) return;
     const headers = Object.keys(properties[0]).join(',');
@@ -71,6 +76,7 @@ export const PDFActions = ({
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
+
   return <div className="flex flex-col gap-4">
       {generatingPDFs && <div className="w-full space-y-2">
           <Progress value={progress} className="w-full h-2" />
@@ -83,7 +89,12 @@ export const PDFActions = ({
           <Download className="h-4 w-4" />
           Descarga CSV
         </Button>
-        <Button onClick={handleGeneratePDF} className="gap-2" variant="secondary" disabled={generatingPDFs}>
+        <Button 
+          onClick={handleGeneratePDF} 
+          className="gap-2 border-2 border-primary hover:border-primary/80" 
+          variant="secondary" 
+          disabled={generatingPDFs}
+        >
           <FileText className="h-4 w-4" />
           Descargar PDFs
         </Button>
