@@ -37,19 +37,24 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.setFillColor(218, 242, 31);
   doc.rect(0, 0, 210, 19, 'F');
   
-  // Agregar footer color #EBDDCC
+  // Agregar footer color #EBDDCC con mayor altura
   doc.setDrawColor(235, 221, 204);
   doc.setFillColor(235, 221, 204);
-  doc.rect(0, 278, 210, 19, 'F');
+  doc.rect(0, 265, 210, 32, 'F'); // Aumentado la altura del footer
   
   let yPos = 30;
 
-  // Título
-  doc.setFontSize(16);
-  doc.text('Reporte de Propiedad', 20, yPos);
-  yPos += 15;
+  // Título centrado y con fuente más profesional
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  const title = 'Reporte de Daño de Propiedad';
+  const titleWidth = doc.getStringUnitWidth(title) * 20 / doc.internal.scaleFactor;
+  const pageWidth = doc.internal.pageSize.width;
+  doc.text(title, (pageWidth - titleWidth) / 2, yPos);
+  yPos += 20;
 
   // Información básica
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(12);
   doc.text(`Dirección: ${property.address_formattedStreet || 'N/A'}`, 20, yPos);
   yPos += 10;
@@ -87,8 +92,7 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.setTextColor(0, 0, 0);
   
   // Centrar y dar formato al texto del footer
-  const footerY = 290;
-  const pageWidth = doc.internal.pageSize.width;
+  const footerY = 285; // Ajustado para el nuevo tamaño del footer
   
   // Formato más elegante para las redes sociales
   doc.setFont('helvetica', 'bold');
