@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { FileText, Download } from "lucide-react";
@@ -61,8 +62,8 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
         processedProperties = i + 1;
         const progress = (processedProperties / totalProperties) * 100;
         
-        // Actualizar el toast existente con el nuevo progreso
-        progressToast.update({
+        // Actualizar solo la descripción del toast existente
+        toast({
           title: "Generando reportes",
           description: (
             <div className="w-full">
