@@ -28,7 +28,9 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
     setProgress(0);
 
     try {
-      const zip = await downloadPropertyReports(properties);
+      const zip = await downloadPropertyReports(properties, (currentProgress) => {
+        setProgress(currentProgress);
+      });
       
       if (!zip) {
         throw new Error('Error al generar el archivo ZIP');

@@ -6,9 +6,14 @@ interface Property {
   propertyId: string;
 }
 
-export const downloadPropertyReports = async (properties: Property[]): Promise<Blob | null> => {
+export const downloadPropertyReports = async (
+  properties: Property[], 
+  onProgress: (progress: number) => void
+): Promise<Blob | null> => {
   try {
     const zip = new JSZip();
+    const totalFiles = properties.length;
+    let completedFiles = 0;
 
     console.log('Iniciando descarga de reportes...');
 
@@ -22,16 +27,16 @@ export const downloadPropertyReports = async (properties: Property[]): Promise<B
 
       if (error) {
         console.error(`Error al descargar el reporte ${reportName}:`, error);
-        continue;
-      }
-
-      if (!data) {
+      } else if (data) {
+        zip.file(reportName, data);
+        console.log(`Reporte ${reportName} agregado al ZIP`);
+      } else {
         console.log(`No se encontró el reporte para la propiedad ${property.propertyId}`);
-        continue;
       }
 
-      zip.file(reportName, data);
-      console.log(`Reporte ${reportName} agregado al ZIP`);
+      completedFiles++;
+      const progress = (completedFiles / totalFiles) * 100;
+      onProgress(progress);
     }
 
     console.log('Generando archivo ZIP...');
