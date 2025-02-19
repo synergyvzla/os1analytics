@@ -1,3 +1,4 @@
+
 import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
 import { PDFDocument } from 'pdf-lib';
@@ -56,7 +57,6 @@ async function getTemplateFromSupabase(): Promise<ArrayBuffer | null> {
       console.error('Error downloading template:', error);
       console.error('Error details:', {
         message: error.message,
-        statusCode: error.statusCode,
         name: error.name
       });
       return null;
