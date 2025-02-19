@@ -104,6 +104,38 @@ export type Database = {
         }
         Relationships: []
       }
+      property_assignments: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          id: string
+          property_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          property_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          property_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_assignments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "Propiedades"
+            referencedColumns: ["propertyId"]
+          },
+        ]
+      }
       property_images: {
         Row: {
           created_at: string
@@ -265,12 +297,38 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_super_user: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       crm_status:
@@ -281,6 +339,7 @@ export type Database = {
         | "pending_followup"
         | "closed_won"
         | "closed_lost"
+      user_role: "normal" | "super"
     }
     CompositeTypes: {
       [_ in never]: never

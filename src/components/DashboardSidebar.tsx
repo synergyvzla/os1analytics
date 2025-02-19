@@ -1,7 +1,9 @@
-import { LogOut, User, LayoutDashboard, Users, FileText, Building } from "lucide-react"
+
+import { LogOut, User, LayoutDashboard, Users, FileText, Building, Settings } from "lucide-react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { toast } from "sonner"
 import { supabase } from "@/integrations/supabase/client"
+import { useRole } from "@/hooks/useRole"
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +27,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const { isSuperUser } = useRole();
 
   useEffect(() => {
     const getUser = async () => {
@@ -99,6 +102,19 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
                   </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {isSuperUser && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    asChild
+                    className={isActive("/admin") ? "bg-secondary text-secondary-foreground" : ""}
+                  >
+                    <button onClick={() => navigate("/admin")} className="w-full">
+                      <Settings className="h-4 w-4" />
+                      <span>Administración</span>
+                    </button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter className="border-t p-4">
