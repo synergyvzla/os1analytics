@@ -38,13 +38,11 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.rect(0, 0, 210, 19, 'F');
   
   // Agregar footer color #EBDDCC
-  doc.setDrawColor(235, 221, 204); // Color #EBDDCC
+  doc.setDrawColor(235, 221, 204);
   doc.setFillColor(235, 221, 204);
-  doc.rect(0, 278, 210, 19, 'F'); // Posicionado al final de la página
+  doc.rect(0, 278, 210, 19, 'F');
   
   let yPos = 30;
-
-  console.log("Generando PDF para propiedad:", property.propertyId);
 
   // Título
   doc.setFontSize(16);
@@ -84,11 +82,18 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
     yPos += 7;
   }
 
+  // Footer con información de redes sociales
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  
+  // Texto de redes sociales alineado a la derecha
+  const footerY = 290;
+  doc.text('@welldonemitigation', 160, footerY - 8);
+  doc.text('www.welldonemitigation.com', 160, footerY);
+
   // Intentar agregar la imagen
   try {
     const fileName = `${property.propertyId}.png`;
-    console.log("Intentando descargar imagen:", fileName);
-
     const { data: imageData, error } = await supabase.storage
       .from('property-images')
       .download(fileName);
@@ -102,16 +107,12 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
       console.log('No se encontró la imagen:', fileName);
       return doc;
     }
-
-    console.log('Imagen descargada correctamente:', fileName);
       
     const base64 = await new Promise<string>((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
       reader.readAsDataURL(imageData);
     });
-
-    console.log('Imagen convertida a base64');
 
     const img = new Image();
     img.crossOrigin = "Anonymous";
@@ -122,13 +123,10 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
       img.src = base64;
     });
 
-    console.log('Imagen cargada en objeto Image');
-
     const imgWidth = 170;
     const imgHeight = (img.height * imgWidth) / img.width;
       
     doc.addImage(base64, 'PNG', 20, yPos, imgWidth, imgHeight);
-    console.log('Imagen agregada al PDF');
   } catch (error) {
     console.error('Error al procesar la imagen de la propiedad:', error);
   }
