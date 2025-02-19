@@ -1,7 +1,6 @@
 
 import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
-import { PDFDocument } from 'pdf-lib';
 
 interface Property {
   propertyId: string;
@@ -33,173 +32,7 @@ const formatAddress = (property: Property): string => {
   return `${property.address_street}, ${property.address_city}, FL ${property.address_zip}`;
 };
 
-async function getTemplateFromSupabase(): Promise<ArrayBuffer | null> {
-  try {
-    console.log('Intentando obtener el template desde Supabase...');
-    
-    // Verificar si podemos listar el contenido del bucket primero
-    const { data: bucketFiles, error: bucketError } = await supabase.storage
-      .from('pdf-templates')
-      .list();
-
-    if (bucketError) {
-      console.error('Error al listar el bucket:', bucketError);
-      return null;
-    }
-
-    console.log('Archivos en el bucket:', bucketFiles);
-
-    const { data, error } = await supabase.storage
-      .from('pdf-templates')
-      .download('template.pdf');
-
-    if (error) {
-      console.error('Error downloading template:', error);
-      console.error('Error details:', {
-        message: error.message,
-        name: error.name
-      });
-      return null;
-    }
-
-    if (!data) {
-      console.error('No se encontró el template en el bucket');
-      return null;
-    }
-
-    console.log('Template encontrado, convirtiendo a ArrayBuffer...');
-    const arrayBuffer = await data.arrayBuffer();
-    console.log('Template convertido exitosamente');
-    return arrayBuffer;
-  } catch (error) {
-    console.error('Error in getTemplateFromSupabase:', error);
-    return null;
-  }
-}
-
 export const generatePropertyPDF = async (property: Property): Promise<jsPDF> => {
-  // Intentar cargar el template
-  console.log('Iniciando generación de PDF...');
-  const templateBuffer = await getTemplateFromSupabase();
-  
-  if (!templateBuffer) {
-    console.log('No se pudo cargar el template, usando generación estándar del PDF');
-    return generateStandardPDF(property);
-  }
-
-  try {
-    // Crear un nuevo PDFDocument con pdf-lib para leer el template
-    const pdfDoc = await PDFDocument.load(templateBuffer);
-    const pages = pdfDoc.getPages();
-    const firstPage = pages[0];
-    
-    // Obtener las dimensiones de la página
-    const { width, height } = firstPage.getSize();
-    
-    // Definir posiciones para el contenido
-    const contentY = height - 200;
-    
-    // Modificar el template con pdf-lib
-    firstPage.drawText(formatAddress(property), {
-      x: 50,
-      y: contentY,
-      size: 12,
-    });
-
-    firstPage.drawText(`Propietario: ${property.owner_fullName || 'N/A'}`, {
-      x: 50,
-      y: contentY - 20,
-      size: 12,
-    });
-
-    // Agregar información de ráfagas
-    let gustY = contentY - 60;
-    
-    const gustInfo = [
-      { gust: property.top_gust_1, date: property.top_gust_1_date },
-      { gust: property.top_gust_2, date: property.top_gust_2_date },
-      { gust: property.top_gust_3, date: property.top_gust_3_date },
-      { gust: property.top_gust_4, date: property.top_gust_4_date },
-      { gust: property.top_gust_5, date: property.top_gust_5_date }
-    ];
-
-    gustInfo.forEach((info, index) => {
-      if (info.gust && info.date) {
-        firstPage.drawText(
-          `${index + 1}. ${info.gust} mph (${new Date(info.date).toLocaleDateString()})`,
-          {
-            x: 50,
-            y: gustY,
-            size: 12,
-          }
-        );
-        gustY -= 20;
-      }
-    });
-
-    // Intentar agregar la imagen de la propiedad
-    try {
-      const fileName = `${property.propertyId}.png`;
-      const { data: imageData, error } = await supabase.storage
-        .from('property-images')
-        .download(fileName);
-
-      if (!error && imageData) {
-        const imageBytes = await imageData.arrayBuffer();
-        const image = await pdfDoc.embedPng(imageBytes);
-        const imgDims = image.scale(0.5);
-        
-        firstPage.drawImage(image, {
-          x: (width - imgDims.width) / 2,
-          y: gustY - imgDims.height - 20,
-          width: imgDims.width,
-          height: imgDims.height,
-        });
-      }
-    } catch (error) {
-      console.error('Error al procesar la imagen:', error);
-    }
-
-    // Guardar las modificaciones del template
-    const modifiedPdfBytes = await pdfDoc.save();
-    
-    // Convertir a base64 usando una función compatible con el navegador
-    const uint8Array = new Uint8Array(modifiedPdfBytes);
-    const chunks = [];
-    for (let i = 0; i < uint8Array.length; i++) {
-        chunks.push(String.fromCharCode(uint8Array[i]));
-    }
-    const base64String = btoa(chunks.join(''));
-    
-    // Crear un nuevo documento PDF
-    const finalDoc = new jsPDF();
-    
-    // Agregar el PDF modificado como una página
-    finalDoc.addPage();
-    finalDoc.deletePage(1);
-    finalDoc.addPage();
-    finalDoc.setPage(1);
-    
-    // Agregar el contenido como una imagen
-    finalDoc.addImage(
-      'data:application/pdf;base64,' + base64String,
-      'PDF',
-      0,
-      0,
-      210,
-      297,
-      '',
-      'FAST'
-    );
-
-    return finalDoc;
-  } catch (error) {
-    console.error('Error procesando el PDF template:', error);
-    return generateStandardPDF(property);
-  }
-};
-
-const generateStandardPDF = async (property: Property): Promise<jsPDF> => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   const pageCenter = pageWidth / 2;
@@ -270,6 +103,7 @@ const generateStandardPDF = async (property: Property): Promise<jsPDF> => {
     yPos += 20;
   }
 
+  // Intentar agregar la imagen centrada primero
   try {
     const fileName = `${property.propertyId}.png`;
     const { data: imageData, error } = await supabase.storage
@@ -285,30 +119,29 @@ const generateStandardPDF = async (property: Property): Promise<jsPDF> => {
       console.log('No se encontró la imagen:', fileName);
       return doc;
     }
-
-    // Convertir Blob a Base64
+      
     const base64 = await new Promise<string>((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
       reader.readAsDataURL(imageData);
     });
 
-    // Cargar imagen
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+      
     await new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        // Ajustar tamaño y posición de la imagen
-        const imgWidth = 100;
-        const imgHeight = (img.height * imgWidth) / img.width;
-        const xPos = (pageWidth - imgWidth) / 2;
-        
-        doc.addImage(base64, 'PNG', xPos, yPos, imgWidth, imgHeight);
-        yPos += imgHeight + 15; // Añadir espacio después de la imagen
-        resolve(null);
-      };
+      img.onload = resolve;
       img.onerror = reject;
       img.src = base64;
     });
+
+    // Ajustar tamaño y posición de la imagen
+    const imgWidth = 100;
+    const imgHeight = (img.height * imgWidth) / img.width;
+    const xPos = (pageWidth - imgWidth) / 2;
+      
+    doc.addImage(base64, 'PNG', xPos, yPos, imgWidth, imgHeight);
+    yPos += imgHeight + 15; // Añadir espacio después de la imagen
 
     // Mensaje de contacto justo después de la imagen
     const contactMessage = 'Si está interesado en programar una inspección detallada, por favor contáctenos al 0800-458-6893';
