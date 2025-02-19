@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
 import { PDFDocument } from 'pdf-lib';
@@ -87,10 +86,11 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
     return generateStandardPDF(property);
   }
 
-  console.log('Template cargado correctamente, procediendo a generar PDF con template...');
-
   try {
-    // Cargar el PDF template usando pdf-lib
+    // Crear un nuevo documento PDF directamente
+    const doc = new jsPDF();
+    
+    // Crear un nuevo PDFDocument con pdf-lib para leer el template
     const pdfDoc = await PDFDocument.load(templateBuffer);
     const pages = pdfDoc.getPages();
     const firstPage = pages[0];
@@ -98,10 +98,10 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
     // Obtener las dimensiones de la página
     const { width, height } = firstPage.getSize();
     
-    // Definir posiciones para el contenido (ajustar según tu template)
-    const contentY = height - 200; // Ajusta según donde quieras que comience el contenido
+    // Definir posiciones para el contenido
+    const contentY = height - 200;
     
-    // Agregar el contenido al template
+    // Modificar el template con pdf-lib
     firstPage.drawText(formatAddress(property), {
       x: 50,
       y: contentY,
@@ -116,46 +116,28 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
 
     // Agregar información de ráfagas
     let gustY = contentY - 60;
-    if (property.top_gust_1) {
-      firstPage.drawText(`1. ${property.top_gust_1} mph (${new Date(property.top_gust_1_date!).toLocaleDateString()})`, {
-        x: 50,
-        y: gustY,
-        size: 12,
-      });
-      gustY -= 20;
-    }
-    if (property.top_gust_2) {
-      firstPage.drawText(`2. ${property.top_gust_2} mph (${new Date(property.top_gust_2_date!).toLocaleDateString()})`, {
-        x: 50,
-        y: gustY,
-        size: 12,
-      });
-      gustY -= 20;
-    }
-    if (property.top_gust_3) {
-      firstPage.drawText(`3. ${property.top_gust_3} mph (${new Date(property.top_gust_3_date!).toLocaleDateString()})`, {
-        x: 50,
-        y: gustY,
-        size: 12,
-      });
-      gustY -= 20;
-    }
-    if (property.top_gust_4) {
-      firstPage.drawText(`4. ${property.top_gust_4} mph (${new Date(property.top_gust_4_date!).toLocaleDateString()})`, {
-        x: 50,
-        y: gustY,
-        size: 12,
-      });
-      gustY -= 20;
-    }
-    if (property.top_gust_5) {
-      firstPage.drawText(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date!).toLocaleDateString()})`, {
-        x: 50,
-        y: gustY,
-        size: 12,
-      });
-      gustY -= 20;
-    }
+    
+    const gustInfo = [
+      { gust: property.top_gust_1, date: property.top_gust_1_date },
+      { gust: property.top_gust_2, date: property.top_gust_2_date },
+      { gust: property.top_gust_3, date: property.top_gust_3_date },
+      { gust: property.top_gust_4, date: property.top_gust_4_date },
+      { gust: property.top_gust_5, date: property.top_gust_5_date }
+    ];
+
+    gustInfo.forEach((info, index) => {
+      if (info.gust && info.date) {
+        firstPage.drawText(
+          `${index + 1}. ${info.gust} mph (${new Date(info.date).toLocaleDateString()})`,
+          {
+            x: 50,
+            y: gustY,
+            size: 12,
+          }
+        );
+        gustY -= 20;
+      }
+    });
 
     // Intentar agregar la imagen de la propiedad
     try {
@@ -167,9 +149,7 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
       if (!error && imageData) {
         const imageBytes = await imageData.arrayBuffer();
         const image = await pdfDoc.embedPng(imageBytes);
-        
-        // Calcular dimensiones de la imagen manteniendo la proporción
-        const imgDims = image.scale(0.5); // Ajusta el factor de escala según necesites
+        const imgDims = image.scale(0.5);
         
         firstPage.drawImage(image, {
           x: (width - imgDims.width) / 2,
@@ -182,32 +162,41 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
       console.error('Error al procesar la imagen:', error);
     }
 
-    // Serializar el PDF modificado y devolverlo directamente
-    const pdfBytes = await pdfDoc.save();
+    // Guardar las modificaciones del template
+    const modifiedPdfBytes = await pdfDoc.save();
     
-    // Crear un nuevo documento jsPDF
-    const doc = new jsPDF();
+    // Convertir a base64 de manera más eficiente
+    const uint8Array = new Uint8Array(modifiedPdfBytes);
+    const base64String = Buffer.from(uint8Array).toString('base64');
     
-    // Eliminar la página en blanco por defecto y agregar una nueva
-    doc.addPage();
-    doc.deletePage(1);
+    // Crear un nuevo documento PDF
+    const finalDoc = new jsPDF();
     
-    // Convertir el ArrayBuffer a una cadena base64
-    const base64String = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(pdfBytes))));
+    // Agregar el PDF modificado como una página
+    finalDoc.addPage();
+    finalDoc.deletePage(1);
+    finalDoc.addPage();
+    finalDoc.setPage(1);
     
-    // Agregar el PDF como una imagen
-    doc.addPage();
-    doc.setPage(1);
-    doc.addImage('data:application/pdf;base64,' + base64String, 'JPEG', 0, 0, 210, 297);
+    // Agregar el contenido como una imagen
+    finalDoc.addImage(
+      'data:application/pdf;base64,' + base64String,
+      'PDF',
+      0,
+      0,
+      210,
+      297,
+      '',
+      'FAST'
+    );
 
-    return doc;
+    return finalDoc;
   } catch (error) {
     console.error('Error procesando el PDF template:', error);
     return generateStandardPDF(property);
   }
 };
 
-// Función de respaldo que genera el PDF sin template
 const generateStandardPDF = async (property: Property): Promise<jsPDF> => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
