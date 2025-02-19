@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 interface Property {
   propertyId: string;
   address_formattedStreet: string | null;
+  address_city: string | null;
+  address_zip: number | null;
   address_latitude: number | null;
   address_longitude: number | null;
   valuation_estimatedValue: number | null;
@@ -29,6 +31,13 @@ const formatCurrency = (value: number | null) => {
   }).format(value);
 };
 
+const formatAddress = (property: Property): string => {
+  const street = property.address_formattedStreet || 'N/A';
+  const city = property.address_city || 'N/A';
+  const zip = property.address_zip || 'N/A';
+  return `${street}, ${city}, FL ${zip}`;
+};
+
 export const generatePropertyPDF = async (property: Property): Promise<jsPDF> => {
   const doc = new jsPDF();
   
@@ -40,7 +49,7 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   // Agregar footer color #EBDDCC con mayor altura
   doc.setDrawColor(235, 221, 204);
   doc.setFillColor(235, 221, 204);
-  doc.rect(0, 265, 210, 32, 'F'); // Aumentado la altura del footer
+  doc.rect(0, 265, 210, 32, 'F');
   
   let yPos = 30;
 
@@ -56,7 +65,7 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   // Información básica
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(12);
-  doc.text(`Dirección: ${property.address_formattedStreet || 'N/A'}`, 20, yPos);
+  doc.text(`Dirección: ${formatAddress(property)}`, 20, yPos);
   yPos += 10;
 
   doc.text(`Valor estimado: ${formatCurrency(property.valuation_estimatedValue)}`, 20, yPos);
@@ -92,7 +101,7 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.setTextColor(0, 0, 0);
   
   // Centrar y dar formato al texto del footer
-  const footerY = 285; // Ajustado para el nuevo tamaño del footer
+  const footerY = 285;
   
   // Formato más elegante para las redes sociales
   doc.setFont('helvetica', 'bold');
