@@ -32,12 +32,17 @@ const formatCurrency = (value: number | null) => {
 export const generatePropertyPDF = async (property: Property): Promise<jsPDF> => {
   const doc = new jsPDF();
   
-  // Agregar borde superior verde mejorado
-  doc.setDrawColor(218, 242, 31); // Color #daf21f
+  // Agregar borde superior verde
+  doc.setDrawColor(218, 242, 31);
   doc.setFillColor(218, 242, 31);
-  doc.rect(0, 0, 210, 19, 'F'); // Aumentamos altura del rectángulo en un 25% (de 15 a 19)
+  doc.rect(0, 0, 210, 19, 'F');
   
-  let yPos = 30; // Aumentamos también la posición inicial para dar más espacio
+  // Agregar footer color #EBDDCC
+  doc.setDrawColor(235, 221, 204); // Color #EBDDCC
+  doc.setFillColor(235, 221, 204);
+  doc.rect(0, 278, 210, 19, 'F'); // Posicionado al final de la página
+  
+  let yPos = 30;
 
   console.log("Generando PDF para propiedad:", property.propertyId);
 
