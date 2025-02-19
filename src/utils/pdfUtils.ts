@@ -25,10 +25,10 @@ interface Property {
 }
 
 const formatAddress = (property: Property): string => {
-  const street = property.address_street || 'N/A';
-  const city = property.address_city || 'N/A';
-  const zip = property.address_zip || 'N/A';
-  return `${property.address_houseNumber} ${street}, ${city}, FL ${zip}`;
+  if (!property.address_street || !property.address_city || !property.address_zip) {
+    return 'Dirección no disponible';
+  }
+  return `${property.address_street}, ${property.address_city}, FL ${property.address_zip}`;
 };
 
 export const generatePropertyPDF = async (property: Property): Promise<jsPDF> => {
@@ -64,13 +64,13 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.setFont('helvetica', 'normal');
   const addressStart = doc.getStringUnitWidth('Dirección: ') * 12 / doc.internal.scaleFactor;
   doc.text(formatAddress(property), 20 + addressStart, yPos);
-  yPos += 10; // Reducido el espaciado después de la dirección
+  yPos += 10;
 
   // Propietario en negrita
   doc.setFont('helvetica', 'bold');
   doc.text('Propietario(s):', 20, yPos);
   doc.setFont('helvetica', 'normal');
-  const ownerStart = doc.getStringUnitWidth('Propietario(s): ') * 12 / doc.internal.scaleFactor + 5; // Añadido espacio extra
+  const ownerStart = doc.getStringUnitWidth('Propietario(s): ') * 12 / doc.internal.scaleFactor + 5;
   doc.text(property.owner_fullName || 'N/A', 20 + ownerStart, yPos);
   yPos += 20;
 
@@ -98,13 +98,16 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   }
   if (property.top_gust_5) {
     doc.text(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date!).toLocaleDateString()})`, 25, yPos);
-    yPos += 25; // Aumentado el espaciado después de las ráfagas
+    yPos += 25;
   }
 
-  // Mensaje de contacto
+  // Mensaje de contacto con teléfono y email
   const contactMessage = 'Si está interesado en programar una inspección detallada, por favor contáctenos al 0800-458-6893';
+  const emailMessage = 'o al mail: customerservice@welldonemitigation.com';
   doc.text(contactMessage, 20, yPos);
-  yPos += 15; // Añadido espaciado antes de la imagen
+  yPos += 8;
+  doc.text(emailMessage, 20, yPos);
+  yPos += 15;
 
   // Intentar agregar la imagen
   try {
@@ -138,7 +141,7 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
       img.src = base64;
     });
 
-    const imgWidth = 170;
+    const imgWidth = 85;
     const imgHeight = (img.height * imgWidth) / img.width;
       
     doc.addImage(base64, 'PNG', 20, yPos, imgWidth, imgHeight);
