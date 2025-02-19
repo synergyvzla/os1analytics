@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
-import JSZip from 'jszip';
-import { generatePropertyPDF } from '@/utils/pdfUtils';
+import { downloadPropertyReports } from '@/utils/pdfUtils';
 
 interface PDFActionsProps {
   properties: any[];
@@ -25,34 +24,17 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
       return;
     }
 
-    const zip = new JSZip();
-    const reportFolder = zip.folder("reportes");
-
-    if (!reportFolder) {
-      toast({
-        title: "Error",
-        description: "Error al crear el archivo ZIP",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setGeneratingPDFs(true);
     setProgress(0);
 
     try {
-      for (let i = 0; i < properties.length; i++) {
-        const property = properties[i];
-        const doc = await generatePropertyPDF(property);
-        const pdfOutput = await doc.output('arraybuffer');
-        reportFolder.file(`propiedad_${property.propertyId}.pdf`, pdfOutput);
-        
-        // Actualizar el progreso
-        setProgress(((i + 1) / properties.length) * 100);
+      const zip = await downloadPropertyReports(properties);
+      
+      if (!zip) {
+        throw new Error('Error al generar el archivo ZIP');
       }
 
-      const content = await zip.generateAsync({type: "blob"});
-      const url = window.URL.createObjectURL(content);
+      const url = window.URL.createObjectURL(zip);
       const a = document.createElement('a');
       a.href = url;
       a.download = 'reportes_propiedades.zip';
@@ -63,13 +45,13 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
 
       toast({
         title: "Éxito",
-        description: "Los reportes han sido generados y empaquetados correctamente",
+        description: "Los reportes han sido descargados correctamente",
       });
     } catch (error) {
-      console.error('Error al generar los reportes:', error);
+      console.error('Error al descargar los reportes:', error);
       toast({
         title: "Error",
-        description: "Hubo un error al generar los reportes",
+        description: "Hubo un error al descargar los reportes",
         variant: "destructive",
       });
     } finally {
@@ -102,7 +84,7 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
         <div className="w-full space-y-2">
           <Progress value={progress} className="w-full h-2" />
           <p className="text-sm text-gray-500">
-            Generando reportes PDF... {Math.round(progress)}%
+            Descargando reportes... {Math.round(progress)}%
           </p>
         </div>
       )}
@@ -121,7 +103,7 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
           disabled={generatingPDFs}
         >
           <FileText className="h-4 w-4" />
-          Generar PDF
+          Descargar PDFs
         </Button>
       </div>
     </div>
