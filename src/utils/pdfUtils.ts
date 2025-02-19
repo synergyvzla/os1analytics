@@ -124,7 +124,38 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
       });
       gustY -= 20;
     }
-    // ... Continuar con el resto de las ráfagas
+    if (property.top_gust_2) {
+      firstPage.drawText(`2. ${property.top_gust_2} mph (${new Date(property.top_gust_2_date!).toLocaleDateString()})`, {
+        x: 50,
+        y: gustY,
+        size: 12,
+      });
+      gustY -= 20;
+    }
+    if (property.top_gust_3) {
+      firstPage.drawText(`3. ${property.top_gust_3} mph (${new Date(property.top_gust_3_date!).toLocaleDateString()})`, {
+        x: 50,
+        y: gustY,
+        size: 12,
+      });
+      gustY -= 20;
+    }
+    if (property.top_gust_4) {
+      firstPage.drawText(`4. ${property.top_gust_4} mph (${new Date(property.top_gust_4_date!).toLocaleDateString()})`, {
+        x: 50,
+        y: gustY,
+        size: 12,
+      });
+      gustY -= 20;
+    }
+    if (property.top_gust_5) {
+      firstPage.drawText(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date!).toLocaleDateString()})`, {
+        x: 50,
+        y: gustY,
+        size: 12,
+      });
+      gustY -= 20;
+    }
 
     // Intentar agregar la imagen de la propiedad
     try {
@@ -151,22 +182,23 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
       console.error('Error al procesar la imagen:', error);
     }
 
-    // Serializar el PDF modificado
+    // Serializar el PDF modificado y devolverlo directamente
     const pdfBytes = await pdfDoc.save();
     
-    // Convertir a jsPDF para mantener la compatibilidad con el resto del código
+    // Crear un nuevo documento jsPDF
     const doc = new jsPDF();
+    
+    // Eliminar la página en blanco por defecto y agregar una nueva
     doc.addPage();
-    doc.deletePage(1); // Eliminar la página en blanco por defecto
+    doc.deletePage(1);
     
-    // Convertir el ArrayBuffer a Base64
-    const base64 = btoa(
-      new Uint8Array(pdfBytes).reduce((data, byte) => data + String.fromCharCode(byte), '')
-    );
+    // Convertir el ArrayBuffer a una cadena base64
+    const base64String = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(pdfBytes))));
     
+    // Agregar el PDF como una imagen
     doc.addPage();
     doc.setPage(1);
-    doc.addImage('data:application/pdf;base64,' + base64, 'PDF', 0, 0, 210, 297);
+    doc.addImage('data:application/pdf;base64,' + base64String, 'JPEG', 0, 0, 210, 297);
 
     return doc;
   } catch (error) {
