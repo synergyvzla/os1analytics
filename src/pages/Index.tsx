@@ -1,12 +1,16 @@
+
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
+import { Footer } from "@/components/Footer";
 import { MessageCircle } from "lucide-react";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <Hero />
+      <div className="flex-grow" />
+      <Footer />
       <a
         href="https://wa.me/584242519717"
         target="_blank"
