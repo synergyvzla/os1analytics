@@ -1,6 +1,7 @@
 
 import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
+import { PDFDocument } from 'pdf-lib';
 
 interface Property {
   propertyId: string;
@@ -32,7 +33,121 @@ const formatAddress = (property: Property): string => {
   return `${property.address_street}, ${property.address_city}, FL ${property.address_zip}`;
 };
 
+async function getTemplateFromSupabase(): Promise<ArrayBuffer | null> {
+  try {
+    const { data, error } = await supabase.storage
+      .from('pdf-templates')
+      .download('template.pdf');
+
+    if (error) {
+      console.error('Error downloading template:', error);
+      return null;
+    }
+
+    return await data.arrayBuffer();
+  } catch (error) {
+    console.error('Error in getTemplateFromSupabase:', error);
+    return null;
+  }
+}
+
 export const generatePropertyPDF = async (property: Property): Promise<jsPDF> => {
+  // Intentar cargar el template
+  const templateBuffer = await getTemplateFromSupabase();
+  
+  if (!templateBuffer) {
+    console.log('No se pudo cargar el template, usando generación estándar del PDF');
+    return generateStandardPDF(property);
+  }
+
+  try {
+    // Cargar el PDF template usando pdf-lib
+    const pdfDoc = await PDFDocument.load(templateBuffer);
+    const pages = pdfDoc.getPages();
+    const firstPage = pages[0];
+    
+    // Obtener las dimensiones de la página
+    const { width, height } = firstPage.getSize();
+    
+    // Definir posiciones para el contenido (ajustar según tu template)
+    const contentY = height - 200; // Ajusta según donde quieras que comience el contenido
+    
+    // Agregar el contenido al template
+    firstPage.drawText(formatAddress(property), {
+      x: 50,
+      y: contentY,
+      size: 12,
+    });
+
+    firstPage.drawText(`Propietario: ${property.owner_fullName || 'N/A'}`, {
+      x: 50,
+      y: contentY - 20,
+      size: 12,
+    });
+
+    // Agregar información de ráfagas
+    let gustY = contentY - 60;
+    if (property.top_gust_1) {
+      firstPage.drawText(`1. ${property.top_gust_1} mph (${new Date(property.top_gust_1_date!).toLocaleDateString()})`, {
+        x: 50,
+        y: gustY,
+        size: 12,
+      });
+      gustY -= 20;
+    }
+    // ... Continuar con el resto de las ráfagas
+
+    // Intentar agregar la imagen de la propiedad
+    try {
+      const fileName = `${property.propertyId}.png`;
+      const { data: imageData, error } = await supabase.storage
+        .from('property-images')
+        .download(fileName);
+
+      if (!error && imageData) {
+        const imageBytes = await imageData.arrayBuffer();
+        const image = await pdfDoc.embedPng(imageBytes);
+        
+        // Calcular dimensiones de la imagen manteniendo la proporción
+        const imgDims = image.scale(0.5); // Ajusta el factor de escala según necesites
+        
+        firstPage.drawImage(image, {
+          x: (width - imgDims.width) / 2,
+          y: gustY - imgDims.height - 20,
+          width: imgDims.width,
+          height: imgDims.height,
+        });
+      }
+    } catch (error) {
+      console.error('Error al procesar la imagen:', error);
+    }
+
+    // Serializar el PDF modificado
+    const pdfBytes = await pdfDoc.save();
+    
+    // Convertir a jsPDF para mantener la compatibilidad con el resto del código
+    const doc = new jsPDF();
+    doc.addPage();
+    doc.deletePage(1); // Eliminar la página en blanco por defecto
+    
+    // Convertir el ArrayBuffer a Base64
+    const base64 = btoa(
+      new Uint8Array(pdfBytes).reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
+    
+    doc.addPage();
+    doc.setPage(1);
+    doc.addImage('data:application/pdf;base64,' + base64, 'PDF', 0, 0, 210, 297);
+
+    return doc;
+  } catch (error) {
+    console.error('Error procesando el PDF template:', error);
+    return generateStandardPDF(property);
+  }
+};
+
+// Función de respaldo que genera el PDF sin template
+const generateStandardPDF = (property: Property): jsPDF => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   const pageCenter = pageWidth / 2;
