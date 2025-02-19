@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { FileText, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { Progress } from "@/components/ui/progress";
 import JSZip from 'jszip';
 import { generatePropertyPDF } from '@/utils/pdfUtils';
 
@@ -34,48 +33,16 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
       return;
     }
 
-    const totalProperties = properties.length;
-    let processedProperties = 0;
-
-    // Crear un único toast que actualizaremos
-    const progressToast = toast({
-      title: "Generando reportes",
-      description: (
-        <div className="w-full">
-          <Progress 
-            value={0} 
-            className="w-full h-2" 
-          />
-          <p className="text-xs mt-2">0 de {totalProperties} reportes generados</p>
-        </div>
-      ),
-      duration: Infinity,
+    toast({
+      title: "Iniciando generación",
+      description: "Comenzando a generar los reportes PDF...",
     });
 
     try {
-      for (let i = 0; i < properties.length; i++) {
-        const property = properties[i];
+      for (const property of properties) {
         const doc = await generatePropertyPDF(property);
         const pdfOutput = await doc.output('arraybuffer');
         reportFolder.file(`propiedad_${property.propertyId}.pdf`, pdfOutput);
-        
-        processedProperties = i + 1;
-        const progress = (processedProperties / totalProperties) * 100;
-        
-        // Actualizar solo la descripción del toast existente
-        toast({
-          title: "Generando reportes",
-          description: (
-            <div className="w-full">
-              <Progress 
-                value={progress} 
-                className="w-full h-2" 
-              />
-              <p className="text-xs mt-2">{`${processedProperties} de ${totalProperties} reportes generados`}</p>
-            </div>
-          ),
-          duration: Infinity,
-        });
       }
 
       const content = await zip.generateAsync({type: "blob"});
