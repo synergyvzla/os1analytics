@@ -1,3 +1,4 @@
+
 import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -62,7 +63,7 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.setFont('helvetica', 'bold');
   doc.text('Dirección:', 20, yPos);
   doc.setFont('helvetica', 'normal');
-  const addressStart = doc.getStringUnitWidth('Dirección: ') * 12 / doc.internal.scaleFactor;
+  const addressStart = doc.getStringUnitWidth('Dirección: ') * 12 / doc.internal.scaleFactor + 5; // Añadido espacio extra
   doc.text(formatAddress(property), 20 + addressStart, yPos);
   yPos += 10;
 
@@ -72,11 +73,11 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.setFont('helvetica', 'normal');
   const ownerStart = doc.getStringUnitWidth('Propietario(s): ') * 12 / doc.internal.scaleFactor + 5;
   doc.text(property.owner_fullName || 'N/A', 20 + ownerStart, yPos);
-  yPos += 20;
+  yPos += 10; // Ajustado para mantener consistencia
 
   // Información de ráfagas
   doc.setFont('helvetica', 'bold');
-  doc.text('Top 5 ráfagas de viento:', 20, yPos);
+  doc.text('Principales ráfagas de viento registradas:', 20, yPos);
   yPos += 10;
   
   doc.setFont('helvetica', 'normal');
