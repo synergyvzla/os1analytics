@@ -11,40 +11,44 @@ export const useRole = () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          console.log("No user found");
+          console.log("No user found, returning normal role");
           return 'normal' as UserRole;
         }
 
-        console.log("Checking role for user:", user.email);
-        console.log("User ID:", user.id);
-
-        const { data: roleData, error } = await supabase
+        console.log("Fetching role for user:", user.email);
+        
+        const { data: roles, error } = await supabase
           .from('user_roles')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
+          .select('role')
+          .eq('user_id', user.id);
 
         if (error) {
-          console.error("Error fetching role:", error);
+          console.error("Error fetching roles:", error);
           return 'normal' as UserRole;
         }
 
-        console.log("Role data received:", roleData);
-        return (roleData?.role || 'normal') as UserRole;
+        console.log("Roles data received:", roles);
+
+        // Check if the user has a super role
+        const isSuperRole = roles?.some(r => r.role === 'super');
+        const finalRole = isSuperRole ? 'super' : 'normal';
+        
+        console.log("Final determined role:", finalRole);
+        return finalRole as UserRole;
       } catch (error) {
         console.error("Unexpected error in useRole:", error);
         return 'normal' as UserRole;
       }
     },
-    staleTime: 0,
-    retry: 1,
+    staleTime: 1000 * 60, // Cache for 1 minute
+    retry: 2,
     refetchOnMount: true,
     refetchOnWindowFocus: true
   });
 
   const isSuperUser = role === 'super';
   
-  console.log("Final role state:", { role, isLoading, isSuperUser });
+  console.log("useRole hook state:", { role, isLoading, isSuperUser });
 
   return {
     role,
@@ -53,3 +57,4 @@ export const useRole = () => {
     refetch
   };
 };
+
