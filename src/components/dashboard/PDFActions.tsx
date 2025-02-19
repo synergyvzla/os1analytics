@@ -37,16 +37,17 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
     const totalProperties = properties.length;
     let processedProperties = 0;
 
-    // Mostrar el toast inicial con la barra de progreso
-    toast({
+    // Crear un único toast que actualizaremos
+    const toastId = toast({
+      id: 'pdf-progress',
       title: "Generando reportes",
       description: (
         <div className="w-full">
           <Progress 
-            value={(processedProperties / totalProperties) * 100} 
+            value={0} 
             className="w-full h-2" 
           />
-          <p className="text-xs mt-2">{`${processedProperties} de ${totalProperties} reportes generados`}</p>
+          <p className="text-xs mt-2">0 de {totalProperties} reportes generados</p>
         </div>
       ),
       duration: Infinity,
@@ -60,14 +61,16 @@ export const PDFActions = ({ properties }: PDFActionsProps) => {
         reportFolder.file(`propiedad_${property.propertyId}.pdf`, pdfOutput);
         
         processedProperties = i + 1;
+        const progress = (processedProperties / totalProperties) * 100;
         
-        // Actualizar el toast con el nuevo progreso
+        // Actualizar el toast existente con el nuevo progreso
         toast({
+          id: 'pdf-progress',
           title: "Generando reportes",
           description: (
             <div className="w-full">
               <Progress 
-                value={(processedProperties / totalProperties) * 100} 
+                value={progress} 
                 className="w-full h-2" 
               />
               <p className="text-xs mt-2">{`${processedProperties} de ${totalProperties} reportes generados`}</p>
