@@ -84,6 +84,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          is_super_user: boolean
           updated_at: string
         }
         Insert: {
@@ -92,6 +93,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          is_super_user?: boolean
           updated_at?: string
         }
         Update: {
@@ -100,6 +102,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          is_super_user?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -294,27 +297,6 @@ export type Database = {
           top_gust_5_date?: string | null
           valuation_estimatedValue?: number | null
           wind_score?: number | null
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["user_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["user_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["user_role"]
-          user_id?: string
         }
         Relationships: []
       }
