@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,11 +25,10 @@ interface Property {
 }
 
 const formatAddress = (property: Property): string => {
-  const houseNumber = property.address_houseNumber || 'N/A';
   const street = property.address_street || 'N/A';
   const city = property.address_city || 'N/A';
   const zip = property.address_zip || 'N/A';
-  return `${houseNumber} ${street}, ${city}, FL ${zip}`;
+  return `${property.address_houseNumber} ${street}, ${city}, FL ${zip}`;
 };
 
 export const generatePropertyPDF = async (property: Property): Promise<jsPDF> => {
@@ -66,15 +64,15 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.setFont('helvetica', 'normal');
   const addressStart = doc.getStringUnitWidth('Dirección: ') * 12 / doc.internal.scaleFactor;
   doc.text(formatAddress(property), 20 + addressStart, yPos);
-  yPos += 15; // Aumentado el espaciado después de la dirección
+  yPos += 10; // Reducido el espaciado después de la dirección
 
   // Propietario en negrita
   doc.setFont('helvetica', 'bold');
   doc.text('Propietario(s):', 20, yPos);
   doc.setFont('helvetica', 'normal');
-  const ownerStart = doc.getStringUnitWidth('Propietario(s): ') * 12 / doc.internal.scaleFactor;
+  const ownerStart = doc.getStringUnitWidth('Propietario(s): ') * 12 / doc.internal.scaleFactor + 5; // Añadido espacio extra
   doc.text(property.owner_fullName || 'N/A', 20 + ownerStart, yPos);
-  yPos += 20; // Aumentado el espaciado después del propietario
+  yPos += 20;
 
   // Información de ráfagas
   doc.setFont('helvetica', 'bold');
