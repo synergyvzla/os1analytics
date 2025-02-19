@@ -147,7 +147,7 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
 };
 
 // Función de respaldo que genera el PDF sin template
-const generateStandardPDF = (property: Property): jsPDF => {
+const generateStandardPDF = async (property: Property): Promise<jsPDF> => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   const pageCenter = pageWidth / 2;
@@ -218,7 +218,6 @@ const generateStandardPDF = (property: Property): jsPDF => {
     yPos += 20;
   }
 
-  // Intentar agregar la imagen centrada primero
   try {
     const fileName = `${property.propertyId}.png`;
     const { data: imageData, error } = await supabase.storage
@@ -234,29 +233,30 @@ const generateStandardPDF = (property: Property): jsPDF => {
       console.log('No se encontró la imagen:', fileName);
       return doc;
     }
-      
+
+    // Convertir Blob a Base64
     const base64 = await new Promise<string>((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
       reader.readAsDataURL(imageData);
     });
 
-    const img = new Image();
-    img.crossOrigin = "Anonymous";
-      
+    // Cargar imagen
     await new Promise((resolve, reject) => {
-      img.onload = resolve;
+      const img = new Image();
+      img.onload = () => {
+        // Ajustar tamaño y posición de la imagen
+        const imgWidth = 100;
+        const imgHeight = (img.height * imgWidth) / img.width;
+        const xPos = (pageWidth - imgWidth) / 2;
+        
+        doc.addImage(base64, 'PNG', xPos, yPos, imgWidth, imgHeight);
+        yPos += imgHeight + 15; // Añadir espacio después de la imagen
+        resolve(null);
+      };
       img.onerror = reject;
       img.src = base64;
     });
-
-    // Ajustar tamaño y posición de la imagen
-    const imgWidth = 100;
-    const imgHeight = (img.height * imgWidth) / img.width;
-    const xPos = (pageWidth - imgWidth) / 2;
-      
-    doc.addImage(base64, 'PNG', xPos, yPos, imgWidth, imgHeight);
-    yPos += imgHeight + 15; // Añadir espacio después de la imagen
 
     // Mensaje de contacto justo después de la imagen
     const contactMessage = 'Si está interesado en programar una inspección detallada, por favor contáctenos al 0800-458-6893';
