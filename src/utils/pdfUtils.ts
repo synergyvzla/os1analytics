@@ -66,7 +66,7 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.setFont('helvetica', 'normal');
   const addressStart = doc.getStringUnitWidth('Dirección: ') * 12 / doc.internal.scaleFactor;
   doc.text(formatAddress(property), 20 + addressStart, yPos);
-  yPos += 10;
+  yPos += 15; // Aumentado el espaciado después de la dirección
 
   // Propietario en negrita
   doc.setFont('helvetica', 'bold');
@@ -74,55 +74,39 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   doc.setFont('helvetica', 'normal');
   const ownerStart = doc.getStringUnitWidth('Propietario(s): ') * 12 / doc.internal.scaleFactor;
   doc.text(property.owner_fullName || 'N/A', 20 + ownerStart, yPos);
-  yPos += 15;
+  yPos += 20; // Aumentado el espaciado después del propietario
 
   // Información de ráfagas
+  doc.setFont('helvetica', 'bold');
   doc.text('Top 5 ráfagas de viento:', 20, yPos);
   yPos += 10;
   
+  doc.setFont('helvetica', 'normal');
   if (property.top_gust_1) {
     doc.text(`1. ${property.top_gust_1} mph (${new Date(property.top_gust_1_date!).toLocaleDateString()})`, 25, yPos);
-    yPos += 7;
+    yPos += 8;
   }
   if (property.top_gust_2) {
     doc.text(`2. ${property.top_gust_2} mph (${new Date(property.top_gust_2_date!).toLocaleDateString()})`, 25, yPos);
-    yPos += 7;
+    yPos += 8;
   }
   if (property.top_gust_3) {
     doc.text(`3. ${property.top_gust_3} mph (${new Date(property.top_gust_3_date!).toLocaleDateString()})`, 25, yPos);
-    yPos += 7;
+    yPos += 8;
   }
   if (property.top_gust_4) {
     doc.text(`4. ${property.top_gust_4} mph (${new Date(property.top_gust_4_date!).toLocaleDateString()})`, 25, yPos);
-    yPos += 7;
+    yPos += 8;
   }
   if (property.top_gust_5) {
     doc.text(`5. ${property.top_gust_5} mph (${new Date(property.top_gust_5_date!).toLocaleDateString()})`, 25, yPos);
-    yPos += 20;
+    yPos += 25; // Aumentado el espaciado después de las ráfagas
   }
 
   // Mensaje de contacto
   const contactMessage = 'Si está interesado en programar una inspección detallada, por favor contáctenos al 0800-458-6893';
   doc.text(contactMessage, 20, yPos);
-
-  // Footer con información de redes sociales
-  doc.setFontSize(12);
-  doc.setTextColor(0, 0, 0);
-  
-  // Centrar y dar formato al texto del footer
-  const footerY = 285;
-  
-  // Formato más elegante para las redes sociales
-  doc.setFont('helvetica', 'bold');
-  const socialText = '@welldonemitigation';
-  const socialWidth = doc.getStringUnitWidth(socialText) * 12 / doc.internal.scaleFactor;
-  doc.text(socialText, pageWidth - 20 - socialWidth, footerY - 8);
-  
-  // URL del sitio web
-  doc.setFont('helvetica', 'normal');
-  const webText = 'www.welldonemitigation.com';
-  const webWidth = doc.getStringUnitWidth(webText) * 12 / doc.internal.scaleFactor;
-  doc.text(webText, pageWidth - 20 - webWidth, footerY);
+  yPos += 15; // Añadido espaciado antes de la imagen
 
   // Intentar agregar la imagen
   try {
@@ -163,6 +147,25 @@ export const generatePropertyPDF = async (property: Property): Promise<jsPDF> =>
   } catch (error) {
     console.error('Error al procesar la imagen de la propiedad:', error);
   }
+
+  // Footer con información de redes sociales
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  
+  // Centrar y dar formato al texto del footer
+  const footerY = 285;
+  
+  // Formato más elegante para las redes sociales
+  doc.setFont('helvetica', 'bold');
+  const socialText = '@welldonemitigation';
+  const socialWidth = doc.getStringUnitWidth(socialText) * 12 / doc.internal.scaleFactor;
+  doc.text(socialText, pageWidth - 20 - socialWidth, footerY - 8);
+  
+  // URL del sitio web
+  doc.setFont('helvetica', 'normal');
+  const webText = 'www.welldonemitigation.com';
+  const webWidth = doc.getStringUnitWidth(webText) * 12 / doc.internal.scaleFactor;
+  doc.text(webText, pageWidth - 20 - webWidth, footerY);
 
   return doc;
 };
