@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 import { supabase } from "@/integrations/supabase/client";
 import { PDFDocument } from 'pdf-lib';
@@ -35,6 +34,7 @@ const formatAddress = (property: Property): string => {
 
 async function getTemplateFromSupabase(): Promise<ArrayBuffer | null> {
   try {
+    console.log('Intentando obtener el template desde Supabase...');
     const { data, error } = await supabase.storage
       .from('pdf-templates')
       .download('template.pdf');
@@ -44,7 +44,15 @@ async function getTemplateFromSupabase(): Promise<ArrayBuffer | null> {
       return null;
     }
 
-    return await data.arrayBuffer();
+    if (!data) {
+      console.error('No se encontró el template en el bucket');
+      return null;
+    }
+
+    console.log('Template encontrado, convirtiendo a ArrayBuffer...');
+    const arrayBuffer = await data.arrayBuffer();
+    console.log('Template convertido exitosamente');
+    return arrayBuffer;
   } catch (error) {
     console.error('Error in getTemplateFromSupabase:', error);
     return null;
@@ -53,12 +61,15 @@ async function getTemplateFromSupabase(): Promise<ArrayBuffer | null> {
 
 export const generatePropertyPDF = async (property: Property): Promise<jsPDF> => {
   // Intentar cargar el template
+  console.log('Iniciando generación de PDF...');
   const templateBuffer = await getTemplateFromSupabase();
   
   if (!templateBuffer) {
     console.log('No se pudo cargar el template, usando generación estándar del PDF');
     return generateStandardPDF(property);
   }
+
+  console.log('Template cargado correctamente, procediendo a generar PDF con template...');
 
   try {
     // Cargar el PDF template usando pdf-lib
