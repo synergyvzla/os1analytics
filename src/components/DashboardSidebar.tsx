@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { toast } from "sonner"
 import { supabase } from "@/integrations/supabase/client"
 import { useRole } from "@/hooks/useRole"
-import { useIsMobile } from "@/hooks/use-mobile"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,12 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { useEffect, useState } from "react"
 
 function DashboardSidebarContent() {
@@ -75,7 +68,7 @@ function DashboardSidebarContent() {
 
   return (
     <div 
-      className={`fixed top-0 left-0 h-screen flex flex-col bg-slate-900 text-slate-200 transition-width duration-300 ease-in-out z-[100] shadow-xl ${
+      className={`fixed top-0 left-0 h-screen flex flex-col bg-slate-900 text-slate-200 transition-[width] duration-200 ease-out z-[100] shadow-xl ${
         isExpanded ? 'w-64' : 'w-16'
       }`}
       onMouseEnter={() => setIsExpanded(true)}
@@ -86,38 +79,29 @@ function DashboardSidebarContent() {
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-500">
             <Building className="h-5 w-5 text-white" />
           </div>
-          <div className={`min-w-0 overflow-hidden ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
+          {isExpanded && (
             <h2 className="truncate text-sm font-semibold">Well Done Mitigation</h2>
-          </div>
+          )}
         </div>
       </div>
 
       <nav className="flex-1 space-y-1 px-2">
         {menuItems.map((item) => (
-          <TooltipProvider key={item.path} delayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => navigate(item.path)}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors overflow-hidden ${
-                    isActive(item.path)
-                      ? 'bg-slate-800 text-white'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  {item.icon}
-                  <span className={`whitespace-nowrap ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-                    {item.text}
-                  </span>
-                </button>
-              </TooltipTrigger>
-              {!isExpanded && (
-                <TooltipContent side="right" className="z-[110]">
-                  {item.text}
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </TooltipProvider>
+          <button
+            key={item.path}
+            onClick={() => navigate(item.path)}
+            title={!isExpanded ? item.text : undefined}
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+              isActive(item.path)
+                ? 'bg-slate-800 text-white'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            }`}
+          >
+            {item.icon}
+            {isExpanded && (
+              <span className="whitespace-nowrap">{item.text}</span>
+            )}
+          </button>
         ))}
       </nav>
 
@@ -130,9 +114,9 @@ function DashboardSidebarContent() {
                 {userEmail?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className={`flex flex-1 flex-col text-left min-w-0 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
+            {isExpanded && (
               <span className="truncate text-sm">{userEmail}</span>
-            </div>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-[200px] z-[110]">
             <DropdownMenuItem onClick={() => navigate("/profile")}>
