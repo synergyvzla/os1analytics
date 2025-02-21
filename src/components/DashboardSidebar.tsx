@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { toast } from "sonner"
 import { supabase } from "@/integrations/supabase/client"
 import { useRole } from "@/hooks/useRole"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
   Sidebar,
   SidebarContent,
@@ -13,6 +14,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  SidebarTrigger,
 } from "@/components/ui/sidebar"
 import {
   DropdownMenu,
@@ -21,16 +23,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useEffect, useState } from "react"
 
 export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [userEmail, setUserEmail] = useState<string | null>(null)
-  const { isSuperUser, isLoading } = useRole();
-
-  console.log("Is super user:", isSuperUser);
-  console.log("Is loading:", isLoading);
+  const { isSuperUser, isLoading } = useRole()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const getUser = async () => {
@@ -56,13 +62,36 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   const isActive = (path: string) => location.pathname === path
 
   if (isLoading) {
-    return <div>Cargando...</div>;
+    return <div>Cargando...</div>
   }
 
+  const menuItems = [
+    {
+      text: "Dashboard",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+      path: "/dashboard",
+    },
+    {
+      text: "CRM",
+      icon: <Users className="h-4 w-4" />,
+      path: "/crm",
+    },
+    {
+      text: "Documentación",
+      icon: <FileText className="h-4 w-4" />,
+      path: "/docs",
+    },
+    ...(isSuperUser ? [{
+      text: "Administración",
+      icon: <Settings className="h-4 w-4" />,
+      path: "/admin",
+    }] : []),
+  ]
+
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={!isMobile}>
       <div className="flex min-h-screen w-full">
-        <Sidebar>
+        <Sidebar variant="floating" collapsible="icon">
           <SidebarHeader className="p-4">
             <div className="flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
@@ -76,52 +105,29 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild
-                  className={isActive("/dashboard") ? "bg-secondary text-secondary-foreground" : ""}
-                >
-                  <button onClick={() => navigate("/dashboard")} className="w-full">
-                    <LayoutDashboard className="h-4 w-4" />
-                    <span>Dashboard</span>
-                  </button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild
-                  className={isActive("/crm") ? "bg-secondary text-secondary-foreground" : ""}
-                >
-                  <button onClick={() => navigate("/crm")} className="w-full">
-                    <Users className="h-4 w-4" />
-                    <span>CRM</span>
-                  </button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild
-                  className={isActive("/docs") ? "bg-secondary text-secondary-foreground" : ""}
-                >
-                  <button onClick={() => navigate("/docs")} className="w-full">
-                    <FileText className="h-4 w-4" />
-                    <span>Documentación</span>
-                  </button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              {isSuperUser && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    asChild
-                    className={isActive("/admin") ? "bg-secondary text-secondary-foreground" : ""}
-                  >
-                    <button onClick={() => navigate("/admin")} className="w-full">
-                      <Settings className="h-4 w-4" />
-                      <span>Administración</span>
-                    </button>
-                  </SidebarMenuButton>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.path}>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton 
+                          asChild
+                          className={isActive(item.path) ? "bg-secondary text-secondary-foreground" : ""}
+                          tooltip={item.text}
+                        >
+                          <button onClick={() => navigate(item.path)} className="w-full">
+                            {item.icon}
+                            <span>{item.text}</span>
+                          </button>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        {item.text}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </SidebarMenuItem>
-              )}
+              ))}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter className="border-t p-4">
@@ -149,6 +155,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarFooter>
+          <SidebarTrigger className="absolute right-0 top-3 z-20 md:hidden" />
         </Sidebar>
         <main className="flex-1 overflow-hidden">
           {children}
