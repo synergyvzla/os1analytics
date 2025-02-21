@@ -93,15 +93,22 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen w-full">
         <Sidebar variant="floating" collapsible="icon">
           <SidebarHeader className="p-4">
-            <div className="flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                <Building className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold">Well Done Mitigation</h2>
-                <p className="text-sm text-muted-foreground">Enterprise</p>
-              </div>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm overflow-hidden">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary">
+                      <Building className="h-5 w-5 text-primary-foreground" />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="truncate text-lg font-semibold">Well Done Mitigation</h2>
+                      <p className="truncate text-sm text-muted-foreground">Enterprise</p>
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right">Well Done Mitigation Enterprise</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
@@ -133,14 +140,14 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
           <SidebarFooter className="border-t p-4">
             <DropdownMenu>
               <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-secondary">
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-8 w-8 flex-shrink-0">
                   <AvatarImage src="" />
                   <AvatarFallback>
                     {userEmail?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-1 flex-col text-left">
-                  <span className="text-sm font-medium">{userEmail}</span>
+                <div className="flex flex-1 flex-col text-left min-w-0">
+                  <span className="truncate text-sm font-medium">{userEmail}</span>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[200px]">
