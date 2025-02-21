@@ -89,7 +89,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   ]
 
   return (
-    <SidebarProvider defaultOpen={!isMobile}>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full">
         <Sidebar variant="floating" collapsible="icon">
           <SidebarHeader className="p-4">
