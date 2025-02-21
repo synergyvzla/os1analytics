@@ -16,6 +16,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import {
   DropdownMenu,
@@ -32,12 +33,12 @@ import {
 } from "@/components/ui/tooltip"
 import { useEffect, useState } from "react"
 
-export function DashboardSidebar({ children }: { children: React.ReactNode }) {
+function SidebarContent() {
   const navigate = useNavigate()
   const location = useLocation()
   const [userEmail, setUserEmail] = useState<string | null>(null)
-  const { isSuperUser, isLoading } = useRole()
-  const isMobile = useIsMobile()
+  const { isSuperUser } = useRole()
+  const { toggleSidebar } = useSidebar()
 
   useEffect(() => {
     const getUser = async () => {
@@ -61,10 +62,6 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   }
 
   const isActive = (path: string) => location.pathname === path
-
-  if (isLoading) {
-    return <div>Cargando...</div>
-  }
 
   const menuItems = [
     {
@@ -90,82 +87,94 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   ]
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      <div className="flex min-h-screen w-full">
-        <Sidebar className="group/sidebar" variant="sidebar" collapsible="icon">
-          <SidebarHeader className="p-4">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm overflow-hidden">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary">
-                      <Building className="h-5 w-5 text-primary-foreground" />
-                    </div>
-                    <div className="min-w-0">
-                      <h2 className="truncate text-lg font-semibold">Well Done Mitigation</h2>
-                      <p className="truncate text-sm text-muted-foreground">Enterprise</p>
-                    </div>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right">Well Done Mitigation Enterprise</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </SidebarHeader>
-          <SidebarContent className="flex-1">
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.path}>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton 
-                          asChild
-                          className={isActive(item.path) ? "bg-secondary text-secondary-foreground" : ""}
-                          tooltip={item.text}
-                        >
-                          <button onClick={() => navigate(item.path)} className="w-full">
-                            {item.icon}
-                            <span>{item.text}</span>
-                          </button>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">
-                        {item.text}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter className="border-t p-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-secondary">
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarImage src="" />
-                  <AvatarFallback className="text-xs">
-                    {userEmail?.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-1 flex-col text-left min-w-0">
-                  <span className="truncate text-sm font-medium">{userEmail}</span>
+    <Sidebar variant="sidebar" collapsible="icon">
+      <SidebarHeader className="p-4">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm overflow-hidden">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary">
+                  <Building className="h-5 w-5 text-primary-foreground" />
                 </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                <DropdownMenuItem onClick={() => navigate("/profile")}>
-                  <User className="mr-2 h-4 w-4" />
-                  Perfil
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Cerrar Sesión
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarFooter>
-          <SidebarRail />
-          <SidebarTrigger className="absolute right-0 top-3 z-20 md:hidden" />
-        </Sidebar>
+                <div className="min-w-0">
+                  <h2 className="truncate text-lg font-semibold">Well Done Mitigation</h2>
+                  <p className="truncate text-sm text-muted-foreground">Enterprise</p>
+                </div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right">Well Done Mitigation Enterprise</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </SidebarHeader>
+      <SidebarContent className="flex-1">
+        <SidebarMenu>
+          {menuItems.map((item) => (
+            <SidebarMenuItem key={item.path}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton 
+                      asChild
+                      className={isActive(item.path) ? "bg-secondary text-secondary-foreground" : ""}
+                      tooltip={item.text}
+                    >
+                      <button onClick={() => navigate(item.path)} className="w-full">
+                        {item.icon}
+                        <span>{item.text}</span>
+                      </button>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    {item.text}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter className="border-t p-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-secondary">
+            <Avatar className="h-8 w-8 flex-shrink-0">
+              <AvatarImage src="" />
+              <AvatarFallback className="text-xs">
+                {userEmail?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-1 flex-col text-left min-w-0">
+              <span className="truncate text-sm font-medium">{userEmail}</span>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[200px]">
+            <DropdownMenuItem onClick={() => navigate("/profile")}>
+              <User className="mr-2 h-4 w-4" />
+              Perfil
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Cerrar Sesión
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarFooter>
+      <SidebarRail className="cursor-pointer" />
+      <SidebarTrigger className="absolute right-0 top-3 z-20 md:hidden" />
+    </Sidebar>
+  )
+}
+
+export function DashboardSidebar({ children }: { children: React.ReactNode }) {
+  const { isLoading } = useRole()
+
+  if (isLoading) {
+    return <div>Cargando...</div>
+  }
+
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <SidebarContent />
         <main className="flex-1 overflow-hidden">
           {children}
         </main>
