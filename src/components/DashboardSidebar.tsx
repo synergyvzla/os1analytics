@@ -75,7 +75,7 @@ function DashboardSidebarContent() {
 
   return (
     <div 
-      className={`fixed top-0 left-0 h-screen flex flex-col bg-slate-900 text-slate-200 transition-all duration-300 ease-in-out z-[100] shadow-xl ${
+      className={`fixed top-0 left-0 h-screen flex flex-col bg-slate-900 text-slate-200 transition-width duration-300 ease-in-out z-[100] shadow-xl ${
         isExpanded ? 'w-64' : 'w-16'
       }`}
       onMouseEnter={() => setIsExpanded(true)}
@@ -86,7 +86,7 @@ function DashboardSidebarContent() {
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-500">
             <Building className="h-5 w-5 text-white" />
           </div>
-          <div className={`min-w-0 overflow-hidden ${isExpanded ? 'w-auto opacity-100 transition-all duration-300' : 'w-0 opacity-0'}`}>
+          <div className={`min-w-0 overflow-hidden ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
             <h2 className="truncate text-sm font-semibold">Well Done Mitigation</h2>
           </div>
         </div>
@@ -106,7 +106,7 @@ function DashboardSidebarContent() {
                   }`}
                 >
                   {item.icon}
-                  <span className={`${isExpanded ? 'w-auto opacity-100 transition-all duration-300' : 'w-0 opacity-0'} whitespace-nowrap`}>
+                  <span className={`whitespace-nowrap ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
                     {item.text}
                   </span>
                 </button>
@@ -130,7 +130,7 @@ function DashboardSidebarContent() {
                 {userEmail?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className={`flex flex-1 flex-col text-left min-w-0 ${isExpanded ? 'w-auto opacity-100 transition-all duration-300' : 'w-0 opacity-0'}`}>
+            <div className={`flex flex-1 flex-col text-left min-w-0 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
               <span className="truncate text-sm">{userEmail}</span>
             </div>
           </DropdownMenuTrigger>
