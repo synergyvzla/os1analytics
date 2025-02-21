@@ -92,7 +92,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full">
-        <Sidebar className="group/sidebar" variant="default" collapsible="icon">
+        <Sidebar className="group/sidebar" variant="sidebar" collapsible="icon">
           <SidebarHeader className="p-4">
             <TooltipProvider>
               <Tooltip>
