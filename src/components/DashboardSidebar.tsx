@@ -7,7 +7,6 @@ import { useRole } from "@/hooks/useRole"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
   Sidebar,
-  SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
@@ -33,7 +32,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useEffect, useState } from "react"
 
-function SidebarContent() {
+function DashboardSidebarContent() {
   const navigate = useNavigate()
   const location = useLocation()
   const [userEmail, setUserEmail] = useState<string | null>(null)
@@ -106,7 +105,7 @@ function SidebarContent() {
           </Tooltip>
         </TooltipProvider>
       </SidebarHeader>
-      <SidebarContent className="flex-1">
+      <div className="flex-1">
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.path}>
@@ -132,7 +131,7 @@ function SidebarContent() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
-      </SidebarContent>
+      </div>
       <SidebarFooter className="border-t p-4">
         <DropdownMenu>
           <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-secondary">
@@ -174,7 +173,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <SidebarContent />
+        <DashboardSidebarContent />
         <main className="flex-1 overflow-hidden">
           {children}
         </main>
