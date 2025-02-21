@@ -86,7 +86,7 @@ function DashboardSidebarContent() {
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-500">
             <Building className="h-5 w-5 text-white" />
           </div>
-          <div className={`min-w-0 overflow-hidden transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>
+          <div className={`min-w-0 overflow-hidden ${isExpanded ? 'w-auto opacity-100 transition-all duration-300' : 'w-0 opacity-0'}`}>
             <h2 className="truncate text-sm font-semibold">Well Done Mitigation</h2>
           </div>
         </div>
@@ -106,9 +106,7 @@ function DashboardSidebarContent() {
                   }`}
                 >
                   {item.icon}
-                  <span className={`transition-all duration-300 whitespace-nowrap ${
-                    isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'
-                  }`}>
+                  <span className={`${isExpanded ? 'w-auto opacity-100 transition-all duration-300' : 'w-0 opacity-0'} whitespace-nowrap`}>
                     {item.text}
                   </span>
                 </button>
@@ -132,9 +130,7 @@ function DashboardSidebarContent() {
                 {userEmail?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className={`flex flex-1 flex-col text-left min-w-0 transition-all duration-300 ${
-              isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'
-            }`}>
+            <div className={`flex flex-1 flex-col text-left min-w-0 ${isExpanded ? 'w-auto opacity-100 transition-all duration-300' : 'w-0 opacity-0'}`}>
               <span className="truncate text-sm">{userEmail}</span>
             </div>
           </DropdownMenuTrigger>
