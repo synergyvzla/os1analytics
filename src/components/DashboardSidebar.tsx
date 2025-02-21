@@ -75,7 +75,7 @@ function DashboardSidebarContent() {
 
   return (
     <div 
-      className={`fixed top-0 left-0 h-screen flex flex-col bg-slate-900 text-slate-200 transition-all duration-300 ease-in-out z-50 ${
+      className={`fixed top-0 left-0 h-screen flex flex-col bg-slate-900 text-slate-200 transition-all duration-300 ease-in-out z-[100] shadow-xl ${
         isExpanded ? 'w-64' : 'w-16'
       }`}
       onMouseEnter={() => setIsExpanded(true)}
@@ -94,19 +94,19 @@ function DashboardSidebarContent() {
 
       <nav className="flex-1 space-y-1 px-2">
         {menuItems.map((item) => (
-          <TooltipProvider key={item.path}>
+          <TooltipProvider key={item.path} delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   onClick={() => navigate(item.path)}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors overflow-hidden ${
                     isActive(item.path)
                       ? 'bg-slate-800 text-white'
                       : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
                   {item.icon}
-                  <span className={`truncate transition-all duration-300 ${
+                  <span className={`transition-all duration-300 whitespace-nowrap ${
                     isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'
                   }`}>
                     {item.text}
@@ -114,7 +114,7 @@ function DashboardSidebarContent() {
                 </button>
               </TooltipTrigger>
               {!isExpanded && (
-                <TooltipContent side="right">
+                <TooltipContent side="right" className="z-[110]">
                   {item.text}
                 </TooltipContent>
               )}
@@ -138,7 +138,7 @@ function DashboardSidebarContent() {
               <span className="truncate text-sm">{userEmail}</span>
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[200px]">
+          <DropdownMenuContent align="end" className="w-[200px] z-[110]">
             <DropdownMenuItem onClick={() => navigate("/profile")}>
               <User className="mr-2 h-4 w-4" />
               Perfil
