@@ -15,6 +15,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
+  SidebarRail,
 } from "@/components/ui/sidebar"
 import {
   DropdownMenu,
@@ -91,7 +92,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full">
-        <Sidebar variant="floating" collapsible="icon">
+        <Sidebar className="group/sidebar">
           <SidebarHeader className="p-4">
             <TooltipProvider>
               <Tooltip>
@@ -110,7 +111,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
               </Tooltip>
             </TooltipProvider>
           </SidebarHeader>
-          <SidebarContent>
+          <SidebarContent className="flex-1">
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
@@ -142,7 +143,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
               <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-secondary">
                 <Avatar className="h-8 w-8 flex-shrink-0">
                   <AvatarImage src="" />
-                  <AvatarFallback>
+                  <AvatarFallback className="text-xs">
                     {userEmail?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -162,6 +163,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarFooter>
+          <SidebarRail />
           <SidebarTrigger className="absolute right-0 top-3 z-20 md:hidden" />
         </Sidebar>
         <main className="flex-1 overflow-hidden">
