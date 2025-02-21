@@ -75,7 +75,7 @@ function DashboardSidebarContent() {
 
   return (
     <div 
-      className={`fixed top-0 left-0 h-screen flex flex-col bg-slate-900 text-slate-200 transition-all duration-300 ease-in-out ${
+      className={`fixed top-0 left-0 h-screen flex flex-col bg-slate-900 text-slate-200 transition-all duration-300 ease-in-out z-50 ${
         isExpanded ? 'w-64' : 'w-16'
       }`}
       onMouseEnter={() => setIsExpanded(true)}
