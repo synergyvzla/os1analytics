@@ -12,31 +12,48 @@ export const downloadPropertyReports = async (
 ): Promise<Blob | null> => {
   try {
     const zip = new JSZip();
-    const totalFiles = properties.length;
+    // Multiplicamos por 2 porque ahora descargamos 2 archivos por propiedad
+    const totalFiles = properties.length * 2;
     let completedFiles = 0;
 
     console.log('Iniciando descarga de reportes...');
 
     for (const property of properties) {
-      const reportName = `reporte_${property.propertyId}.pdf`;
-      console.log(`Intentando descargar: ${reportName}`);
+      // Descargar versión en español
+      const spanishReportName = `reporte_${property.propertyId}.pdf`;
+      console.log(`Intentando descargar versión en español: ${spanishReportName}`);
 
-      const { data, error } = await supabase.storage
+      const { data: spanishData, error: spanishError } = await supabase.storage
         .from('reportes')
-        .download(reportName);
+        .download(spanishReportName);
 
-      if (error) {
-        console.error(`Error al descargar el reporte ${reportName}:`, error);
-      } else if (data) {
-        zip.file(reportName, data);
-        console.log(`Reporte ${reportName} agregado al ZIP`);
-      } else {
-        console.log(`No se encontró el reporte para la propiedad ${property.propertyId}`);
+      if (spanishError) {
+        console.error(`Error al descargar el reporte en español ${spanishReportName}:`, spanishError);
+      } else if (spanishData) {
+        zip.file(`español/${spanishReportName}`, spanishData);
+        console.log(`Reporte en español ${spanishReportName} agregado al ZIP`);
       }
 
       completedFiles++;
-      const progress = (completedFiles / totalFiles) * 100;
-      onProgress(progress);
+      onProgress((completedFiles / totalFiles) * 100);
+
+      // Descargar versión en inglés
+      const englishReportName = `report_english_${property.propertyId}.pdf`;
+      console.log(`Intentando descargar versión en inglés: ${englishReportName}`);
+
+      const { data: englishData, error: englishError } = await supabase.storage
+        .from('reportes')
+        .download(englishReportName);
+
+      if (englishError) {
+        console.error(`Error al descargar el reporte en inglés ${englishReportName}:`, englishError);
+      } else if (englishData) {
+        zip.file(`english/${englishReportName}`, englishData);
+        console.log(`Reporte en inglés ${englishReportName} agregado al ZIP`);
+      }
+
+      completedFiles++;
+      onProgress((completedFiles / totalFiles) * 100);
     }
 
     console.log('Generando archivo ZIP...');
