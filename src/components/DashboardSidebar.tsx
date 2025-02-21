@@ -164,7 +164,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen w-full">
       <DashboardSidebarContent />
-      <main className="flex-1 overflow-auto bg-slate-50 ml-16">
+      <main className={`flex-1 overflow-auto bg-slate-50 transition-all duration-300 ml-16`}>
         {children}
       </main>
     </div>
