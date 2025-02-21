@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { CityFilter } from "@/components/dashboard/CityFilter";
@@ -16,7 +15,6 @@ import { PDFActions } from "@/components/dashboard/PDFActions";
 import { Pagination } from "@/components/dashboard/Pagination";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
 export const Dashboard = () => {
   const {
     selectedCities,
@@ -51,46 +49,41 @@ export const Dashboard = () => {
     setPriceRange,
     currentPage,
     totalPages,
-    handlePageChange,
+    handlePageChange
   } = usePropertyFilters();
-
   const displayCount = properties?.length || 0;
-
-  const { data: propertyImages, isLoading: isLoadingImages } = useQuery({
+  const {
+    data: propertyImages,
+    isLoading: isLoadingImages
+  } = useQuery({
     queryKey: ['propertyImages', currentPage],
     queryFn: async () => {
       console.log("Iniciando consulta de imágenes...");
-      
-      const { count } = await supabase
-        .from('property_images')
-        .select('*', { count: 'exact', head: true });
-      
+      const {
+        count
+      } = await supabase.from('property_images').select('*', {
+        count: 'exact',
+        head: true
+      });
       console.log("Total de imágenes en la base de datos:", count);
-
-      const { data, error } = await supabase
-        .from('property_images')
-        .select('*')
-        .range((currentPage - 1) * 100, currentPage * 100 - 1);
-
+      const {
+        data,
+        error
+      } = await supabase.from('property_images').select('*').range((currentPage - 1) * 100, currentPage * 100 - 1);
       if (error) {
         console.error("Error al obtener imágenes:", error);
         throw error;
       }
-
       const transformedData = data?.map(img => ({
         ...img,
         property_id: img.image_url.split('/').pop()?.split('.')[0] || img.property_id
       }));
-
       console.log("Imágenes obtenidas para la página actual:", transformedData?.length);
       console.log("Muestra de los primeros 5 registros transformados:", transformedData?.slice(0, 5));
-      
       return transformedData;
     }
   });
-
-  return (
-    <DashboardSidebar>
+  return <DashboardSidebar>
       <div className="min-h-screen bg-secondary p-2">
         <div className="container mx-auto space-y-2">
           <h1 className="text-lg font-inter font-semibold tracking-tight">Summary</h1>
@@ -101,55 +94,25 @@ export const Dashboard = () => {
           
           <Card className="w-full">
             <CardHeader className="pb-1">
-              <CardTitle className="text-sm">Filtros de búsqueda</CardTitle>
+              <CardTitle className="text-2xl text-slate-950 py-0">Filtros de búsqueda</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-3">
                 <div>
-                  <h3 className="text-xs font-semibold mb-1.5">Ciudades</h3>
-                  <CityFilter
-                    selectedCities={selectedCities}
-                    availableCities={availableCities}
-                    searchQuery={citySearchQuery}
-                    setSearchQuery={setCitySearchQuery}
-                    handleCitySelect={handleCitySelect}
-                    removeCity={removeCity}
-                    isDropdownOpen={isCityDropdownOpen}
-                    setIsDropdownOpen={setIsCityDropdownOpen}
-                  />
+                  <h3 className="text-xs mb-1.5 font-semibold text-left">Ciudades</h3>
+                  <CityFilter selectedCities={selectedCities} availableCities={availableCities} searchQuery={citySearchQuery} setSearchQuery={setCitySearchQuery} handleCitySelect={handleCitySelect} removeCity={removeCity} isDropdownOpen={isCityDropdownOpen} setIsDropdownOpen={setIsCityDropdownOpen} />
                 </div>
                 <div>
                   <h3 className="text-xs font-semibold mb-1.5">Códigos Postales</h3>
-                  <ZipCodeFilter
-                    selectedZips={selectedZips}
-                    availableZipCodes={availableZipCodes}
-                    searchQuery={zipSearchQuery}
-                    setSearchQuery={setZipSearchQuery}
-                    handleZipSelect={handleZipSelect}
-                    removeZip={removeZip}
-                    isDropdownOpen={isZipDropdownOpen}
-                    setIsDropdownOpen={setIsZipDropdownOpen}
-                  />
+                  <ZipCodeFilter selectedZips={selectedZips} availableZipCodes={availableZipCodes} searchQuery={zipSearchQuery} setSearchQuery={setZipSearchQuery} handleZipSelect={handleZipSelect} removeZip={removeZip} isDropdownOpen={isZipDropdownOpen} setIsDropdownOpen={setIsZipDropdownOpen} />
                 </div>
                 <div>
                   <h3 className="text-xs font-semibold mb-1.5">Scores</h3>
-                  <ScoreFilter
-                    selectedScores={selectedScores}
-                    availableScores={availableScores}
-                    searchQuery={scoreSearchQuery}
-                    setSearchQuery={setScoreSearchQuery}
-                    handleScoreSelect={handleScoreSelect}
-                    removeScore={removeScore}
-                    isDropdownOpen={isScoreDropdownOpen}
-                    setIsDropdownOpen={setIsScoreDropdownOpen}
-                  />
+                  <ScoreFilter selectedScores={selectedScores} availableScores={availableScores} searchQuery={scoreSearchQuery} setSearchQuery={setScoreSearchQuery} handleScoreSelect={handleScoreSelect} removeScore={removeScore} isDropdownOpen={isScoreDropdownOpen} setIsDropdownOpen={setIsScoreDropdownOpen} />
                 </div>
                 <div>
                   <h3 className="text-xs font-semibold mb-1.5">Rango de Precio Estimado</h3>
-                  <PriceRangeFilter
-                    priceRange={priceRange}
-                    setPriceRange={setPriceRange}
-                  />
+                  <PriceRangeFilter priceRange={priceRange} setPriceRange={setPriceRange} />
                 </div>
               </div>
             </CardContent>
@@ -165,24 +128,15 @@ export const Dashboard = () => {
             </ScrollArea>
           </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            handlePageChange={handlePageChange}
-          />
+          <Pagination currentPage={currentPage} totalPages={totalPages} handlePageChange={handlePageChange} />
 
           <PDFActions properties={properties || []} />
 
           <div className="py-24">
             <Separator className="my-8" />
-            <PropertiesMap
-              properties={properties}
-              center={mapCenter}
-              zoom={mapZoom}
-            />
+            <PropertiesMap properties={properties} center={mapCenter} zoom={mapZoom} />
           </div>
         </div>
       </div>
-    </DashboardSidebar>
-  );
+    </DashboardSidebar>;
 };
