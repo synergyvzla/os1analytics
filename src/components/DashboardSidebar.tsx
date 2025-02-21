@@ -75,7 +75,7 @@ function DashboardSidebarContent() {
 
   return (
     <div 
-      className={`relative flex flex-col bg-slate-900 text-slate-200 transition-all duration-300 ease-in-out ${
+      className={`fixed top-0 left-0 h-screen flex flex-col bg-slate-900 text-slate-200 transition-all duration-300 ease-in-out ${
         isExpanded ? 'w-64' : 'w-16'
       }`}
       onMouseEnter={() => setIsExpanded(true)}
@@ -164,7 +164,7 @@ export function DashboardSidebar({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen w-full">
       <DashboardSidebarContent />
-      <main className="flex-1 overflow-hidden bg-slate-50">
+      <main className="flex-1 overflow-auto bg-slate-50 ml-16">
         {children}
       </main>
     </div>
