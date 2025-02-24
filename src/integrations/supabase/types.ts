@@ -184,12 +184,30 @@ export type Database = {
           building_yearBuilt: number | null
           combined_score: number | null
           count_gusts: number | null
+          email_1: string | null
+          email_2: string | null
+          email_3: string | null
+          email_4: string | null
+          email_6: string | null
+          email_7: string | null
+          email_8: string | null
+          email_9: string | null
           general_propertyTypeDetail: string | null
           "Google Maps": string | null
           max_gust: number | null
           mean_gust: number | null
           owner_fullName: string | null
           owner_lengthOfResidenceYears: string | null
+          owner_match_age: number | null
+          phone_1: string | null
+          phone_2: string | null
+          phone_3: string | null
+          phone_4: string | null
+          phone_5: string | null
+          phone_6: string | null
+          phone_7: string | null
+          phone_8: string | null
+          phone_9: string | null
           propertyId: string
           sale_priorSale_price: string | null
           score_base: number | null
@@ -228,12 +246,30 @@ export type Database = {
           building_yearBuilt?: number | null
           combined_score?: number | null
           count_gusts?: number | null
+          email_1?: string | null
+          email_2?: string | null
+          email_3?: string | null
+          email_4?: string | null
+          email_6?: string | null
+          email_7?: string | null
+          email_8?: string | null
+          email_9?: string | null
           general_propertyTypeDetail?: string | null
           "Google Maps"?: string | null
           max_gust?: number | null
           mean_gust?: number | null
           owner_fullName?: string | null
           owner_lengthOfResidenceYears?: string | null
+          owner_match_age?: number | null
+          phone_1?: string | null
+          phone_2?: string | null
+          phone_3?: string | null
+          phone_4?: string | null
+          phone_5?: string | null
+          phone_6?: string | null
+          phone_7?: string | null
+          phone_8?: string | null
+          phone_9?: string | null
           propertyId: string
           sale_priorSale_price?: string | null
           score_base?: number | null
@@ -272,12 +308,30 @@ export type Database = {
           building_yearBuilt?: number | null
           combined_score?: number | null
           count_gusts?: number | null
+          email_1?: string | null
+          email_2?: string | null
+          email_3?: string | null
+          email_4?: string | null
+          email_6?: string | null
+          email_7?: string | null
+          email_8?: string | null
+          email_9?: string | null
           general_propertyTypeDetail?: string | null
           "Google Maps"?: string | null
           max_gust?: number | null
           mean_gust?: number | null
           owner_fullName?: string | null
           owner_lengthOfResidenceYears?: string | null
+          owner_match_age?: number | null
+          phone_1?: string | null
+          phone_2?: string | null
+          phone_3?: string | null
+          phone_4?: string | null
+          phone_5?: string | null
+          phone_6?: string | null
+          phone_7?: string | null
+          phone_8?: string | null
+          phone_9?: string | null
           propertyId?: string
           sale_priorSale_price?: string | null
           score_base?: number | null

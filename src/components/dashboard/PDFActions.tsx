@@ -61,9 +61,54 @@ export const PDFActions = ({
 
   const handleDownload = () => {
     if (!properties || properties.length === 0) return;
-    const headers = Object.keys(properties[0]).join(',');
-    const rows = properties.map(prop => Object.values(prop).join(','));
+
+    // Lista de columnas a excluir
+    const excludeColumns = [
+      'address_houseNumber',
+      'address_countyFipsCode',
+      'address_zipPlus4',
+      'address_longitude',
+      'address_latitude',
+      'address_formattedStreet',
+      'address_streetNoUnit',
+      'building_effectiveYearBuilt',
+      'sale_priorSale_price',
+      'valuation_estimatedValue',
+      'Station1_ID',
+      'Station2_ID',
+      'score_base',
+      'wind_score',
+      'max_gust',
+      'mean_gust',
+      'station_used',
+      'top_gust_1',
+      'top_gust_1_date',
+      'top_gust_2',
+      'top_gust_2_date',
+      'top_gust_3',
+      'top_gust_3_date',
+      'top_gust_4',
+      'top_gust_4_date',
+      'top_gust_5',
+      'top_gust_5_date',
+      'structural_score'
+    ];
+
+    // Filtrar las propiedades para excluir las columnas no deseadas
+    const filteredProperties = properties.map(prop => {
+      const filteredProp = { ...prop };
+      excludeColumns.forEach(column => {
+        delete filteredProp[column];
+      });
+      return filteredProp;
+    });
+
+    // Generar el CSV con las propiedades filtradas
+    const headers = Object.keys(filteredProperties[0]).join(',');
+    const rows = filteredProperties.map(prop => Object.values(prop).join(','));
     const csv = [headers, ...rows].join('\n');
+
+    // Crear y descargar el archivo CSV
     const blob = new Blob([csv], {
       type: 'text/csv'
     });
