@@ -91,7 +91,10 @@ export const PDFActions = ({
       'top_gust_4_date',
       'top_gust_5',
       'top_gust_5_date',
-      'structural_score'
+      'structural_score',
+      'building_roofCover',
+      'building_roofType',
+      'general_propertyTypeDetail'
     ];
 
     // Filtrar las propiedades para excluir las columnas no deseadas
