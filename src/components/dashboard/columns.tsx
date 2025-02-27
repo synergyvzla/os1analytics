@@ -103,7 +103,19 @@ export const columns: ColumnDef<Property>[] = [
       
       const handleDownload = async () => {
         try {
-          const zip = await downloadPropertyReports([property], (progress) => {
+          // Comprobamos que exista propertyId
+          if (!property.propertyId) {
+            toast({
+              title: "Error",
+              description: "Esta propiedad no tiene un ID válido para descargar reportes",
+              variant: "destructive"
+            });
+            return;
+          }
+          
+          const zip = await downloadPropertyReports([{
+            propertyId: property.propertyId
+          }], (progress) => {
             // No mostramos progreso para descargas individuales
           });
           
@@ -114,7 +126,7 @@ export const columns: ColumnDef<Property>[] = [
           const url = window.URL.createObjectURL(zip);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `reportes_propiedad_${property.propertyId || 'sin_id'}.zip`;
+          a.download = `reportes_propiedad_${property.propertyId}.zip`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -140,6 +152,7 @@ export const columns: ColumnDef<Property>[] = [
           size="sm" 
           onClick={handleDownload}
           className="gap-1"
+          disabled={!property.propertyId}
         >
           <Download className="h-3 w-3" />
           Descargar
