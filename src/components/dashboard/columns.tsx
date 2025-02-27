@@ -2,6 +2,10 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
+import { Button } from "@/components/ui/button"
+import { Download } from "lucide-react"
+import { downloadPropertyReports } from '@/utils/pdfUtils'
+import { toast } from "@/hooks/use-toast"
 
 export type Property = {
   combined_score: number
@@ -19,6 +23,7 @@ export type Property = {
   top_gust_4_date?: string
   top_gust_5_date?: string
   'Google Maps'?: string
+  propertyId?: string
 }
 
 const formatCurrency = (value: number) => {
@@ -89,6 +94,58 @@ export const columns: ColumnDef<Property>[] = [
     id: "gust_dates",
     header: "Fechas Ráfagas",
     cell: ({ row }) => formatGustDates(row.original),
+  },
+  {
+    id: "download_reports",
+    header: "Reportes",
+    cell: ({ row }) => {
+      const property = row.original;
+      
+      const handleDownload = async () => {
+        try {
+          const zip = await downloadPropertyReports([property], (progress) => {
+            // No mostramos progreso para descargas individuales
+          });
+          
+          if (!zip) {
+            throw new Error('Error al generar el archivo ZIP');
+          }
+          
+          const url = window.URL.createObjectURL(zip);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `reportes_propiedad_${property.propertyId || 'sin_id'}.zip`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          
+          toast({
+            title: "Éxito",
+            description: "Los reportes han sido descargados correctamente"
+          });
+        } catch (error) {
+          console.error('Error al descargar los reportes:', error);
+          toast({
+            title: "Error",
+            description: "Hubo un error al descargar los reportes",
+            variant: "destructive"
+          });
+        }
+      };
+      
+      return (
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleDownload}
+          className="gap-1"
+        >
+          <Download className="h-3 w-3" />
+          Descargar
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "Google Maps",
