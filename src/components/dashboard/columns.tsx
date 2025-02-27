@@ -1,3 +1,4 @@
+
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
@@ -7,7 +8,6 @@ export type Property = {
   address_street: string
   address_zip: number
   valuation_estimatedValue: number
-  owner_lengthOfResidenceYears: string
   top_gust_1?: number
   top_gust_2?: number
   top_gust_3?: number
@@ -79,10 +79,6 @@ export const columns: ColumnDef<Property>[] = [
     accessorKey: "valuation_estimatedValue",
     header: "Valor Estimado",
     cell: ({ row }) => formatCurrency(row.getValue("valuation_estimatedValue")),
-  },
-  {
-    accessorKey: "owner_lengthOfResidenceYears",
-    header: "Años de residencia",
   },
   {
     id: "top_gusts",
