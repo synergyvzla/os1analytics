@@ -1,4 +1,3 @@
-
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
@@ -23,7 +22,7 @@ export type Property = {
   top_gust_4_date?: string
   top_gust_5_date?: string
   'Google Maps'?: string
-  propertyId?: string
+  propertyId: string
 }
 
 const formatCurrency = (value: number) => {
@@ -103,16 +102,6 @@ export const columns: ColumnDef<Property>[] = [
       
       const handleDownload = async () => {
         try {
-          // Comprobamos que exista propertyId
-          if (!property.propertyId) {
-            toast({
-              title: "Error",
-              description: "Esta propiedad no tiene un ID válido para descargar reportes",
-              variant: "destructive"
-            });
-            return;
-          }
-          
           const zip = await downloadPropertyReports([{
             propertyId: property.propertyId
           }], (progress) => {
@@ -152,7 +141,6 @@ export const columns: ColumnDef<Property>[] = [
           size="sm" 
           onClick={handleDownload}
           className="gap-1"
-          disabled={!property.propertyId}
         >
           <Download className="h-3 w-3" />
           Descargar
