@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -36,7 +37,7 @@ export const Navbar = () => {
             />
             <div className="flex flex-col">
               <span className="text-[#0EA5E9] font-bold text-xl tracking-tight">
-                Signal Orlando
+                OS1 Analytics
               </span>
               <span className="text-gray-500 text-xs font-medium">
                 Property Intelligence

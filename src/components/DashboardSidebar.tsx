@@ -80,7 +80,7 @@ function DashboardSidebarContent() {
             <Building className="h-5 w-5 text-white" />
           </div>
           {isExpanded && (
-            <h2 className="truncate text-sm font-semibold">Well Done Mitigation</h2>
+            <h2 className="truncate text-sm font-semibold">OS1 Analytics</h2>
           )}
         </div>
       </div>
