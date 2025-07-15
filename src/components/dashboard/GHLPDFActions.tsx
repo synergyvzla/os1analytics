@@ -259,28 +259,36 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
 
       // Explanatory text about wind analysis with larger font
       const explanationY = 770;
-      firstPage.drawText('Nuestros analistas identificaron ', {
-        x: 80,
-        y: explanationY,
-        size: 16,
-        color: rgb(0, 0, 0),
-      });
-
+      
       if (property.count_gusts) {
-        firstPage.drawText(`${property.count_gusts} ráfagas de vientos mayores a 40 millas por hora en su zona, lo cual trae posibles`, {
-          x: 248,
+        firstPage.drawText(`Nuestros analistas identificaron ${property.count_gusts} ráfagas de vientos mayores a 40 millas por hora en su zona,`, {
+          x: 80,
           y: explanationY,
+          size: 16,
+          color: rgb(0, 0, 0),
+        });
+        
+        firstPage.drawText('lo cual trae posibles daños al techo de su propiedad, entre ellas las siguientes:', {
+          x: 80,
+          y: explanationY - 25,
+          size: 16,
+          color: rgb(0.8, 0, 0), // Red color for emphasis
+        });
+      } else {
+        firstPage.drawText('Nuestros analistas identificaron ráfagas de vientos mayores a 40 millas por hora en su zona,', {
+          x: 80,
+          y: explanationY,
+          size: 16,
+          color: rgb(0, 0, 0),
+        });
+        
+        firstPage.drawText('lo cual trae posibles daños al techo de su propiedad, entre ellas las siguientes:', {
+          x: 80,
+          y: explanationY - 25,
           size: 16,
           color: rgb(0.8, 0, 0), // Red color for emphasis
         });
       }
-
-      firstPage.drawText('daños al techo de su propiedad, entre ellas las siguientes:', {
-        x: 80,
-        y: explanationY - 25,
-        size: 16,
-        color: rgb(0, 0, 0),
-      });
 
       // Top 5 Wind Gusts as numbered list with larger font
       const gustData = [
