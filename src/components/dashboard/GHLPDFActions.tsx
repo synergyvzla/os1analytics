@@ -87,7 +87,15 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
             if (!error && imageData) {
               console.log(`Found image: ${filename}`);
               const imageBytes = await imageData.arrayBuffer();
-              const image = await pdfDoc.embedJpg(imageBytes);
+              
+              // Detectar el tipo de imagen basado en la extensión
+              let image;
+              if (filename.toLowerCase().endsWith('.png')) {
+                image = await pdfDoc.embedPng(imageBytes);
+              } else {
+                image = await pdfDoc.embedJpg(imageBytes);
+              }
+              
               propertyImage = image;
               imageFound = true;
               console.log('Storage image embedded successfully');
