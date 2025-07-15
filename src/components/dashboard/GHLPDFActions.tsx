@@ -64,44 +64,76 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
       console.log('Looking for image for property:', property.propertyId);
       
       try {
-        // First, get all property images and transform them like Dashboard does
-        const { data: allImages, error } = await supabase
-          .from('property_images')
-          .select('*');
+        // NUEVO: Intentar obtener imagen directamente del storage bucket
+        console.log('Trying to get image from storage bucket for property:', property.propertyId);
         
-        console.log('All images from DB:', allImages?.length || 0);
+        // Intentar varios formatos posibles de nombre de archivo
+        const possibleFilenames = [
+          `${property.propertyId}.jpg`,
+          `${property.propertyId}.jpeg`,
+          `${property.propertyId}.png`,
+          `${property.propertyId}.webp`
+        ];
         
-        if (allImages && allImages.length > 0) {
-          // Transform data like Dashboard does - extract property_id from image filename
-          const transformedImages = allImages.map(img => ({
-            ...img,
-            property_id: img.image_url.split('/').pop()?.split('.')[0] || img.property_id
-          }));
-          
-          console.log('First few transformed images:', transformedImages.slice(0, 3));
-          
-          // Find image for this specific property
-          const propertyImageData = transformedImages.find(img => 
-            img.property_id === property.propertyId
-          );
-          
-          console.log('Found image for property:', propertyImageData);
-          
-          if (propertyImageData?.image_url) {
-            console.log('Fetching image from:', propertyImageData.image_url);
-            const imageResponse = await fetch(propertyImageData.image_url);
-            if (imageResponse.ok) {
-              const imageBytes = await imageResponse.arrayBuffer();
+        let imageFound = false;
+        
+        for (const filename of possibleFilenames) {
+          try {
+            console.log(`Trying to download: ${filename}`);
+            const { data: imageData, error } = await supabase.storage
+              .from('property-images')
+              .download(filename);
+            
+            if (!error && imageData) {
+              console.log(`Found image: ${filename}`);
+              const imageBytes = await imageData.arrayBuffer();
               const image = await pdfDoc.embedJpg(imageBytes);
               propertyImage = image;
-              console.log('Property image embedded successfully');
+              imageFound = true;
+              console.log('Storage image embedded successfully');
+              break;
+            }
+          } catch (storageError) {
+            console.log(`No image found with name ${filename}`);
+          }
+        }
+        
+        // Fallback: si no encontramos en storage, intentar con la tabla property_images (método anterior)
+        if (!imageFound) {
+          console.log('No image found in storage, trying property_images table...');
+          const { data: allImages, error } = await supabase
+            .from('property_images')
+            .select('*');
+          
+          console.log('All images from DB:', allImages?.length || 0);
+          
+          if (allImages && allImages.length > 0) {
+            const transformedImages = allImages.map(img => ({
+              ...img,
+              property_id: img.image_url.split('/').pop()?.split('.')[0] || img.property_id
+            }));
+            
+            const propertyImageData = transformedImages.find(img => 
+              img.property_id === property.propertyId
+            );
+            
+            if (propertyImageData?.image_url) {
+              console.log('Fetching image from URL:', propertyImageData.image_url);
+              const imageResponse = await fetch(propertyImageData.image_url);
+              if (imageResponse.ok) {
+                const imageBytes = await imageResponse.arrayBuffer();
+                const image = await pdfDoc.embedJpg(imageBytes);
+                propertyImage = image;
+                imageFound = true;
+                console.log('URL image embedded successfully');
+              }
             }
           }
         }
         
-        // Fallback to placeholder if no property image found
-        if (!propertyImage) {
-          console.log('No property image found, using placeholder');
+        // Solo usar placeholder si realmente no encontramos ninguna imagen
+        if (!imageFound) {
+          console.log('No property image found anywhere, using placeholder');
           const placeholderUrl = 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400&h=300&fit=crop';
           const imageResponse = await fetch(placeholderUrl);
           if (imageResponse.ok) {
@@ -113,7 +145,7 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
         }
       } catch (error) {
         console.error('Error loading image:', error);
-        // Fallback to placeholder
+        // Fallback final a placeholder
         try {
           const placeholderUrl = 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400&h=300&fit=crop';
           const imageResponse = await fetch(placeholderUrl);
