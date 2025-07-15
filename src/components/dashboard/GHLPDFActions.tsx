@@ -172,13 +172,13 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
       const leftMargin = 80;
       const rightColumn = 350;
       
-      // Add property image if available - larger size but same position
+      // Add property image if available - much larger and higher position
       if (propertyImage) {
-        const imageWidth = 280;
-        const imageHeight = 180;
+        const imageWidth = 560;
+        const imageHeight = 360;
         firstPage.drawImage(propertyImage, {
           x: leftMargin,
-          y: yPosition + 50,
+          y: yPosition + 150,
           width: imageWidth,
           height: imageHeight,
         });
