@@ -59,30 +59,48 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
       const firstPage = pages[0];
       const { width, height } = firstPage.getSize();
       
-      // Try to get property image
+      // Try to get property image using the same method as Dashboard
       let propertyImage = null;
       console.log('Looking for image for property:', property.propertyId);
       
       try {
-        const { data: imageData, error } = await supabase
+        // First, get all property images and transform them like Dashboard does
+        const { data: allImages, error } = await supabase
           .from('property_images')
-          .select('image_url')
-          .eq('property_id', property.propertyId)
-          .maybeSingle();
+          .select('*');
         
-        console.log('Image query result:', { imageData, error });
+        console.log('All images from DB:', allImages?.length || 0);
         
-        if (imageData?.image_url) {
-          console.log('Fetching image from:', imageData.image_url);
-          const imageResponse = await fetch(imageData.image_url);
-          if (imageResponse.ok) {
-            const imageBytes = await imageResponse.arrayBuffer();
-            const image = await pdfDoc.embedJpg(imageBytes);
-            propertyImage = image;
-            console.log('Image embedded successfully');
+        if (allImages && allImages.length > 0) {
+          // Transform data like Dashboard does - extract property_id from image filename
+          const transformedImages = allImages.map(img => ({
+            ...img,
+            property_id: img.image_url.split('/').pop()?.split('.')[0] || img.property_id
+          }));
+          
+          console.log('First few transformed images:', transformedImages.slice(0, 3));
+          
+          // Find image for this specific property
+          const propertyImageData = transformedImages.find(img => 
+            img.property_id === property.propertyId
+          );
+          
+          console.log('Found image for property:', propertyImageData);
+          
+          if (propertyImageData?.image_url) {
+            console.log('Fetching image from:', propertyImageData.image_url);
+            const imageResponse = await fetch(propertyImageData.image_url);
+            if (imageResponse.ok) {
+              const imageBytes = await imageResponse.arrayBuffer();
+              const image = await pdfDoc.embedJpg(imageBytes);
+              propertyImage = image;
+              console.log('Property image embedded successfully');
+            }
           }
-        } else {
-          // Use placeholder image if no property image found
+        }
+        
+        // Fallback to placeholder if no property image found
+        if (!propertyImage) {
           console.log('No property image found, using placeholder');
           const placeholderUrl = 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400&h=300&fit=crop';
           const imageResponse = await fetch(placeholderUrl);
