@@ -9,6 +9,7 @@ import JSZip from 'jszip';
 interface Property {
   propertyId: string;
   address_street?: string;
+  address_formattedStreet?: string;
   address_city?: string;
   address_zip?: number;
   owner_fullName?: string;
@@ -30,6 +31,7 @@ interface Property {
   address_longitude?: number;
   building_yearBuilt?: number;
   building_totalBuildingAreaSquareFeet?: number;
+  "Google Maps"?: string;
 }
 
 interface GHLPDFActionsProps {
@@ -41,141 +43,145 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
   const [progress, setProgress] = useState(0);
 
   const generatePropertyPDF = async (property: Property): Promise<Blob> => {
-    console.log('Iniciando generación de PDF para propiedad:', property.propertyId);
-    
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
 
-    // Create header with company branding
-    pdf.setFillColor(0, 51, 102); // Dark blue header
-    pdf.rect(0, 0, pageWidth, 35, 'F');
-    
-    // Add company title
-    pdf.setFontSize(20);
-    pdf.setTextColor(255, 255, 255); // White text
-    pdf.text('SYNERGY DATA ANALYTICS', pageWidth / 2, 15, { align: 'center' });
-    
-    pdf.setFontSize(12);
-    pdf.text('Property Risk Assessment Report', pageWidth / 2, 25, { align: 'center' });
-
-    // Reset to black text for content
-    pdf.setTextColor(0, 0, 0);
-    
-    // Property Header Section
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('PROPERTY INFORMATION', 20, 50);
-    
-    // Property Address
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(12);
-    const address = `${property.address_street || ''}, ${property.address_city || ''} ${property.address_zip || ''}`.trim();
-    pdf.text(`Address: ${address}`, 20, 60);
-
-    // Property ID
-    pdf.setFontSize(10);
-    pdf.text(`Property ID: ${property.propertyId}`, 20, 70);
-
-    // Owner Information
-    if (property.owner_fullName) {
-      pdf.text(`Owner: ${property.owner_fullName}`, 20, 80);
-    }
-
-    // Scores Section
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(0, 51, 102);
-    pdf.text('RISK ASSESSMENT SCORES', 20, 100);
-    
-    // Score box background
-    pdf.setFillColor(240, 248, 255); // Light blue background
-    pdf.rect(15, 105, pageWidth - 30, 45, 'F');
-    
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(11);
-    pdf.setTextColor(0, 0, 0);
-    
-    let yPos = 115;
-    if (property.combined_score !== undefined) {
-      pdf.text(`Combined Risk Score: ${property.combined_score}`, 20, yPos);
-      yPos += 10;
-    }
-    if (property.wind_score !== undefined) {
-      pdf.text(`Wind Risk Score: ${property.wind_score}`, 20, yPos);
-      yPos += 10;
-    }
-    if (property.structural_score !== undefined) {
-      pdf.text(`Structural Risk Score: ${property.structural_score}`, 20, yPos);
-      yPos += 10;
-    }
-
-    // Property Details Section
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(0, 51, 102);
-    pdf.text('PROPERTY DETAILS', 20, 170);
-    
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-    pdf.setTextColor(0, 0, 0);
-    
-    yPos = 180;
-    if (property.building_yearBuilt) {
-      pdf.text(`Year Built: ${property.building_yearBuilt}`, 20, yPos);
-      yPos += 8;
-    }
-    if (property.building_totalBuildingAreaSquareFeet) {
-      pdf.text(`Building Area: ${property.building_totalBuildingAreaSquareFeet} sq ft`, 20, yPos);
-      yPos += 8;
-    }
-    if (property.valuation_estimatedValue) {
-      pdf.text(`Estimated Value: $${property.valuation_estimatedValue.toLocaleString()}`, 20, yPos);
-      yPos += 8;
-    }
-    if (property.address_latitude && property.address_longitude) {
-      pdf.text(`Coordinates: ${property.address_latitude.toFixed(6)}, ${property.address_longitude.toFixed(6)}`, 20, yPos);
-      yPos += 8;
-    }
-
-    // Wind History Section
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(0, 51, 102);
-    pdf.text('WIND GUST HISTORY', 20, yPos + 15);
-    
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(9);
-    pdf.setTextColor(0, 0, 0);
-    yPos += 25;
-    
-    let hasWindData = false;
-    for (let i = 1; i <= 5; i++) {
-      const gust = property[`top_gust_${i}` as keyof Property] as number;
-      const date = property[`top_gust_${i}_date` as keyof Property] as string;
+    try {
+      // Try to load the Synergy template image
+      const templateImg = new Image();
+      templateImg.crossOrigin = 'anonymous';
       
-      if (gust) {
-        hasWindData = true;
-        const formattedDate = date ? new Date(date).toLocaleDateString() : 'N/A';
-        pdf.text(`${i}. ${gust} mph - ${formattedDate}`, 25, yPos);
-        yPos += 7;
+      await new Promise<void>((resolve, reject) => {
+        templateImg.onload = () => resolve();
+        templateImg.onerror = () => reject(new Error('Failed to load template'));
+        // Try the public folder path
+        templateImg.src = '/Synergy Data Analytics.png';
+      });
+
+      // Add template as background - full page
+      doc.addImage(templateImg, 'PNG', 0, 0, 210, 297);
+
+      // Overlay data in the central white area
+      let yPosition = 85; // Starting position in the white content area
+      
+      // Set text properties for data overlay
+      doc.setTextColor(51, 51, 51); // Dark gray text
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+
+      // Property Score (prominent)
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(41, 128, 185); // Blue color
+      doc.text(`Score: ${property.combined_score || 'N/A'}`, 20, yPosition);
+      yPosition += 15;
+
+      // Address
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(51, 51, 51);
+      doc.text(`Dirección: ${property.address_formattedStreet || 'N/A'}`, 20, yPosition);
+      yPosition += 8;
+
+      // Zip Code
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Código Postal: ${property.address_zip || 'N/A'}`, 20, yPosition);
+      yPosition += 8;
+
+      // Estimated Value
+      doc.text(`Valor Estimado: ${property.valuation_estimatedValue ? 
+        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+          .format(property.valuation_estimatedValue) : 'N/A'}`, 20, yPosition);
+      yPosition += 12;
+
+      // Top 5 Wind Gusts
+      doc.setFont('helvetica', 'bold');
+      doc.text('Top 5 Ráfagas de Viento:', 20, yPosition);
+      yPosition += 8;
+
+      doc.setFont('helvetica', 'normal');
+      const gustData = [
+        { gust: property.top_gust_1, date: property.top_gust_1_date },
+        { gust: property.top_gust_2, date: property.top_gust_2_date },
+        { gust: property.top_gust_3, date: property.top_gust_3_date },
+        { gust: property.top_gust_4, date: property.top_gust_4_date },
+        { gust: property.top_gust_5, date: property.top_gust_5_date }
+      ].filter(item => item.gust && item.date);
+
+      if (gustData.length > 0) {
+        const gustValues = gustData.map(item => item.gust).join(', ');
+        doc.text(`[${gustValues}]`, 20, yPosition);
+        yPosition += 8;
+
+        // Gust Dates
+        doc.setFont('helvetica', 'bold');
+        doc.text('Fechas Ráfagas:', 20, yPosition);
+        yPosition += 8;
+
+        doc.setFont('helvetica', 'normal');
+        const gustDates = gustData.map(item => 
+          item.date ? new Date(item.date).toLocaleDateString('es-ES') : 'N/A'
+        ).join(', ');
+        doc.text(`${gustDates}`, 20, yPosition);
+        yPosition += 8;
+      } else {
+        doc.text('No hay datos de ráfagas disponibles', 20, yPosition);
+        yPosition += 8;
       }
-    }
-    
-    if (!hasWindData) {
-      pdf.text('No wind gust data available', 25, yPos);
+
+      yPosition += 8;
+
+      // Google Maps Link
+      if (property["Google Maps"]) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Google Maps:', 20, yPosition);
+        yPosition += 8;
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(41, 128, 185); // Blue for link
+        doc.text(property["Google Maps"], 20, yPosition);
+      }
+
+    } catch (error) {
+      console.error('Error loading template image:', error);
+      
+      // Fallback: Create PDF without template
+      doc.setFillColor(41, 128, 185);
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('SYNERGY DATA ANALYTICS', 105, 25, { align: 'center' });
+      
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Reporte de Propiedad', 105, 55, { align: 'center' });
+
+      let yPos = 75;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      
+      const data = [
+        `Score: ${property.combined_score || 'N/A'}`,
+        `Dirección: ${property.address_formattedStreet || 'N/A'}`,
+        `Código Postal: ${property.address_zip || 'N/A'}`,
+        `Valor Estimado: ${property.valuation_estimatedValue ? 
+          new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+            .format(property.valuation_estimatedValue) : 'N/A'}`
+      ];
+
+      data.forEach(item => {
+        doc.text(item, 15, yPos);
+        yPos += 10;
+      });
     }
 
-    // Footer
-    pdf.setFillColor(0, 51, 102);
-    pdf.rect(0, pageHeight - 20, pageWidth, 20, 'F');
-    
-    pdf.setFontSize(8);
-    pdf.setTextColor(255, 255, 255);
-    pdf.text(`Generated on ${new Date().toLocaleDateString()} - Synergy Data Analytics`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-
-    console.log('PDF generado exitosamente');
-    return pdf.output('blob');
+    return doc.output('blob');
   };
 
   const handleGeneratePDF = async () => {
