@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { DataTable } from "@/components/dashboard/PropertiesTable";
 import { columns } from "@/components/dashboard/columns";
 import { Separator } from "@/components/ui/separator";
-import { PDFActions } from "@/components/dashboard/PDFActions";
+import { GHLPDFActions } from "@/components/dashboard/GHLPDFActions";
 import { Pagination } from "@/components/dashboard/Pagination";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -135,7 +135,7 @@ export default function GHL() {
 
           <Pagination currentPage={currentPage} totalPages={totalPages} handlePageChange={handlePageChange} />
 
-          <PDFActions properties={properties || []} />
+          <GHLPDFActions properties={properties || []} />
 
           <div className="py-24">
             <Separator className="my-8" />
