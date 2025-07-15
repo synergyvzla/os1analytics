@@ -47,11 +47,15 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
 
+        console.log('Iniciando generación de PDF para propiedad:', property.propertyId);
+
         // Load the template image
         const templateImg = new Image();
         templateImg.crossOrigin = 'anonymous';
+        
         templateImg.onload = () => {
           try {
+            console.log('Template image loaded successfully');
             // Add template as background
             pdf.addImage(templateImg, 'PNG', 0, 0, pageWidth, pageHeight);
 
@@ -139,19 +143,132 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
             pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 20, pageHeight - 10);
 
             const pdfBlob = pdf.output('blob');
+            console.log('PDF generado exitosamente con template');
             resolve(pdfBlob);
           } catch (error) {
+            console.error('Error al procesar la imagen del template:', error);
             reject(error);
           }
         };
 
-        templateImg.onerror = () => {
-          reject(new Error('Failed to load template image'));
+        templateImg.onerror = (error) => {
+          console.error('Error al cargar la imagen del template:', error);
+          console.log('Intentando generar PDF sin template...');
+          
+          // Fallback: Generate PDF without template image
+          try {
+            // Add a simple header background
+            pdf.setFillColor(0, 51, 102); // Dark blue header
+            pdf.rect(0, 0, pageWidth, 30, 'F');
+            
+            // Add company title
+            pdf.setFontSize(18);
+            pdf.setTextColor(255, 255, 255); // White text
+            pdf.text('SYNERGY DATA ANALYTICS', pageWidth / 2, 20, { align: 'center' });
+            
+            // Reset to black text for content
+            pdf.setTextColor(0, 0, 0);
+            
+            // Property Address
+            pdf.setFontSize(12);
+            const address = `${property.address_street || ''}, ${property.address_city || ''} ${property.address_zip || ''}`.trim();
+            pdf.text(address, 20, 50);
+
+            // Property ID
+            pdf.setFontSize(10);
+            pdf.text(`Property ID: ${property.propertyId}`, 20, 60);
+
+            // Owner Information
+            pdf.setFontSize(11);
+            if (property.owner_fullName) {
+              pdf.text(`Owner: ${property.owner_fullName}`, 20, 70);
+            }
+
+            // Scores Section
+            pdf.setFontSize(12);
+            pdf.setTextColor(0, 51, 102);
+            pdf.text('Risk Scores', 20, 90);
+            
+            pdf.setFontSize(10);
+            pdf.setTextColor(0, 0, 0);
+            if (property.combined_score !== undefined) {
+              pdf.text(`Combined Score: ${property.combined_score}`, 20, 100);
+            }
+            if (property.wind_score !== undefined) {
+              pdf.text(`Wind Score: ${property.wind_score}`, 20, 110);
+            }
+            if (property.structural_score !== undefined) {
+              pdf.text(`Structural Score: ${property.structural_score}`, 20, 120);
+            }
+
+            // Property Details
+            pdf.setFontSize(12);
+            pdf.setTextColor(0, 51, 102);
+            pdf.text('Property Details', 20, 140);
+            
+            pdf.setFontSize(10);
+            pdf.setTextColor(0, 0, 0);
+            if (property.building_yearBuilt) {
+              pdf.text(`Year Built: ${property.building_yearBuilt}`, 20, 150);
+            }
+            if (property.building_totalBuildingAreaSquareFeet) {
+              pdf.text(`Building Area: ${property.building_totalBuildingAreaSquareFeet} sq ft`, 20, 160);
+            }
+            if (property.valuation_estimatedValue) {
+              pdf.text(`Estimated Value: $${property.valuation_estimatedValue.toLocaleString()}`, 20, 170);
+            }
+
+            // Coordinates
+            if (property.address_latitude && property.address_longitude) {
+              pdf.text(`Coordinates: ${property.address_latitude.toFixed(6)}, ${property.address_longitude.toFixed(6)}`, 20, 180);
+            }
+
+            // Wind Gust History
+            pdf.setFontSize(12);
+            pdf.setTextColor(0, 51, 102);
+            pdf.text('Top Wind Gusts', 20, 200);
+            
+            pdf.setFontSize(9);
+            pdf.setTextColor(0, 0, 0);
+            let yPosition = 210;
+            
+            for (let i = 1; i <= 5; i++) {
+              const gust = property[`top_gust_${i}` as keyof Property] as number;
+              const date = property[`top_gust_${i}_date` as keyof Property] as string;
+              
+              if (gust) {
+                const formattedDate = date ? new Date(date).toLocaleDateString() : 'N/A';
+                pdf.text(`${i}. ${gust} mph - ${formattedDate}`, 20, yPosition);
+                yPosition += 8;
+              }
+            }
+
+            // Add footer
+            pdf.setFontSize(8);
+            pdf.setTextColor(128, 128, 128);
+            pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 20, pageHeight - 10);
+
+            const pdfBlob = pdf.output('blob');
+            console.log('PDF generado exitosamente sin template');
+            resolve(pdfBlob);
+          } catch (fallbackError) {
+            console.error('Error en fallback PDF generation:', fallbackError);
+            reject(fallbackError);
+          }
         };
 
-        // Load the template image from public folder (encode spaces in filename)
-        templateImg.src = '/Synergy%20Data%20Analytics.png';
+        // Try multiple possible paths for the template
+        const possiblePaths = [
+          '/Synergy%20Data%20Analytics.png',
+          '/Synergy Data Analytics.png',
+          './Synergy%20Data%20Analytics.png',
+          './Synergy Data Analytics.png'
+        ];
+        
+        console.log('Intentando cargar template desde:', possiblePaths[0]);
+        templateImg.src = possiblePaths[0];
       } catch (error) {
+        console.error('Error en generatePropertyPDF:', error);
         reject(error);
       }
     });
