@@ -149,8 +149,8 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
           reject(new Error('Failed to load template image'));
         };
 
-        // Load the template image from public folder
-        templateImg.src = '/Synergy Data Analytics.png';
+        // Load the template image from public folder (encode spaces in filename)
+        templateImg.src = '/Synergy%20Data%20Analytics.png';
       } catch (error) {
         reject(error);
       }
