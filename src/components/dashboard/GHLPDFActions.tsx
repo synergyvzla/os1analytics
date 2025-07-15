@@ -5,6 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { PDFDocument, rgb } from 'pdf-lib';
 import JSZip from 'jszip';
+import { supabase } from "@/integrations/supabase/client";
 
 interface Property {
   propertyId: string;
@@ -56,16 +57,53 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
       // Get the first page of the template
       const pages = pdfDoc.getPages();
       const firstPage = pages[0];
+      const { width, height } = firstPage.getSize();
       
-      // Position data in the central white area
-      let yPosition = 600; // Start from top, PDF coordinates are bottom-up
+      // Try to get property image
+      let propertyImage = null;
+      try {
+        const { data: imageData } = await supabase
+          .from('property_images')
+          .select('image_url')
+          .eq('property_id', property.propertyId)
+          .maybeSingle();
+        
+        if (imageData?.image_url) {
+          const imageResponse = await fetch(imageData.image_url);
+          if (imageResponse.ok) {
+            const imageBytes = await imageResponse.arrayBuffer();
+            const image = await pdfDoc.embedJpg(imageBytes);
+            propertyImage = image;
+          }
+        }
+      } catch (error) {
+        console.log('No image found for property:', property.propertyId);
+      }
       
-      // Property Score (prominent)
+      // Position data in the central white area (coordinates adjusted for better positioning)
+      let yPosition = 500; // Start from middle area, leaving space for image
+      const leftMargin = 80;
+      const rightColumn = 350;
+      
+      // Add property image if available
+      if (propertyImage) {
+        const imageWidth = 200;
+        const imageHeight = 150;
+        firstPage.drawImage(propertyImage, {
+          x: leftMargin,
+          y: yPosition + 50,
+          width: imageWidth,
+          height: imageHeight,
+        });
+        yPosition -= 30; // Adjust position after image
+      }
+      
+      // Property Score (prominent and larger)
       if (property.combined_score) {
         firstPage.drawText(`Score: ${property.combined_score}`, {
-          x: 50,
+          x: leftMargin,
           y: yPosition,
-          size: 20,
+          size: 18,
           color: rgb(0.16, 0.5, 0.73), // Blue color
         });
         yPosition -= 40;
@@ -74,41 +112,43 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
       // Address
       if (property.address_formattedStreet) {
         firstPage.drawText(`Dirección: ${property.address_formattedStreet}`, {
-          x: 50,
+          x: leftMargin,
           y: yPosition,
           size: 12,
-          color: rgb(0.2, 0.2, 0.2),
+          color: rgb(0.3, 0.3, 0.3),
         });
-        yPosition -= 25;
+        yPosition -= 30;
       }
 
       // Zip Code
       if (property.address_zip) {
         firstPage.drawText(`Código Postal: ${property.address_zip}`, {
-          x: 50,
+          x: leftMargin,
           y: yPosition,
           size: 12,
-          color: rgb(0.2, 0.2, 0.2),
+          color: rgb(0.3, 0.3, 0.3),
         });
-        yPosition -= 25;
+        yPosition -= 30;
       }
 
-      // Estimated Value
+      // Estimated Value (formatted with decimals)
       if (property.valuation_estimatedValue) {
         const value = new Intl.NumberFormat('en-US', {
           style: 'currency',
-          currency: 'USD'
+          currency: 'USD',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
         }).format(property.valuation_estimatedValue);
         firstPage.drawText(`Valor Estimado: ${value}`, {
-          x: 50,
+          x: leftMargin,
           y: yPosition,
           size: 12,
-          color: rgb(0.2, 0.2, 0.2),
+          color: rgb(0.3, 0.3, 0.3),
         });
-        yPosition -= 35;
+        yPosition -= 40;
       }
 
-      // Top 5 Wind Gusts
+      // Top 5 Wind Gusts - formatted as array
       const gustData = [
         { gust: property.top_gust_1, date: property.top_gust_1_date },
         { gust: property.top_gust_2, date: property.top_gust_2_date },
@@ -119,54 +159,70 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
 
       if (gustData.length > 0) {
         firstPage.drawText('Top 5 Ráfagas de Viento:', {
-          x: 50,
+          x: leftMargin,
           y: yPosition,
           size: 12,
-          color: rgb(0.2, 0.2, 0.2),
-        });
-        yPosition -= 20;
-
-        const gustValues = gustData.map(item => item.gust).join(', ');
-        firstPage.drawText(`[${gustValues}]`, {
-          x: 50,
-          y: yPosition,
-          size: 11,
-          color: rgb(0.2, 0.2, 0.2),
-        });
-        yPosition -= 20;
-
-        firstPage.drawText('Fechas Ráfagas:', {
-          x: 50,
-          y: yPosition,
-          size: 12,
-          color: rgb(0.2, 0.2, 0.2),
-        });
-        yPosition -= 15;
-
-        const gustDates = gustData.map(item => 
-          item.date ? new Date(item.date).toLocaleDateString('es-ES') : 'N/A'
-        ).join(', ');
-        firstPage.drawText(gustDates, {
-          x: 50,
-          y: yPosition,
-          size: 10,
-          color: rgb(0.2, 0.2, 0.2),
+          color: rgb(0.3, 0.3, 0.3),
         });
         yPosition -= 25;
+
+        // Format as array with one decimal place
+        const gustValues = gustData.map(item => Number(item.gust).toFixed(1)).join(', ');
+        firstPage.drawText(`[${gustValues}]`, {
+          x: leftMargin,
+          y: yPosition,
+          size: 11,
+          color: rgb(0.3, 0.3, 0.3),
+        });
+        yPosition -= 25;
+
+        firstPage.drawText('Fechas:', {
+          x: leftMargin,
+          y: yPosition,
+          size: 12,
+          color: rgb(0.3, 0.3, 0.3),
+        });
+        yPosition -= 20;
+
+        // Format dates consistently
+        const gustDates = gustData.map(item => {
+          if (item.date) {
+            const date = new Date(item.date);
+            return date.toLocaleDateString('es-ES', { 
+              day: '2-digit', 
+              month: '2-digit', 
+              year: 'numeric' 
+            });
+          }
+          return 'N/A';
+        }).join(', ');
+        
+        firstPage.drawText(gustDates, {
+          x: leftMargin,
+          y: yPosition,
+          size: 10,
+          color: rgb(0.3, 0.3, 0.3),
+        });
+        yPosition -= 35;
       }
 
       // Google Maps Link
       if (property["Google Maps"]) {
         firstPage.drawText('Google Maps:', {
-          x: 50,
+          x: leftMargin,
           y: yPosition,
           size: 12,
-          color: rgb(0.2, 0.2, 0.2),
+          color: rgb(0.3, 0.3, 0.3),
         });
-        yPosition -= 15;
+        yPosition -= 20;
         
-        firstPage.drawText(property["Google Maps"], {
-          x: 50,
+        // Truncate long URLs for better display
+        const mapUrl = property["Google Maps"].length > 60 
+          ? property["Google Maps"].substring(0, 60) + '...'
+          : property["Google Maps"];
+          
+        firstPage.drawText(mapUrl, {
+          x: leftMargin,
           y: yPosition,
           size: 10,
           color: rgb(0.16, 0.5, 0.73), // Blue for link
