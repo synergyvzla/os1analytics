@@ -61,23 +61,52 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
       
       // Try to get property image
       let propertyImage = null;
+      console.log('Looking for image for property:', property.propertyId);
+      
       try {
-        const { data: imageData } = await supabase
+        const { data: imageData, error } = await supabase
           .from('property_images')
           .select('image_url')
           .eq('property_id', property.propertyId)
           .maybeSingle();
         
+        console.log('Image query result:', { imageData, error });
+        
         if (imageData?.image_url) {
+          console.log('Fetching image from:', imageData.image_url);
           const imageResponse = await fetch(imageData.image_url);
           if (imageResponse.ok) {
             const imageBytes = await imageResponse.arrayBuffer();
             const image = await pdfDoc.embedJpg(imageBytes);
             propertyImage = image;
+            console.log('Image embedded successfully');
+          }
+        } else {
+          // Use placeholder image if no property image found
+          console.log('No property image found, using placeholder');
+          const placeholderUrl = 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400&h=300&fit=crop';
+          const imageResponse = await fetch(placeholderUrl);
+          if (imageResponse.ok) {
+            const imageBytes = await imageResponse.arrayBuffer();
+            const image = await pdfDoc.embedJpg(imageBytes);
+            propertyImage = image;
+            console.log('Placeholder image embedded successfully');
           }
         }
       } catch (error) {
-        console.log('No image found for property:', property.propertyId);
+        console.error('Error loading image:', error);
+        // Fallback to placeholder
+        try {
+          const placeholderUrl = 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400&h=300&fit=crop';
+          const imageResponse = await fetch(placeholderUrl);
+          if (imageResponse.ok) {
+            const imageBytes = await imageResponse.arrayBuffer();
+            const image = await pdfDoc.embedJpg(imageBytes);
+            propertyImage = image;
+          }
+        } catch (fallbackError) {
+          console.error('Failed to load fallback image:', fallbackError);
+        }
       }
       
       // Position data in the central white area (coordinates adjusted for better positioning)
