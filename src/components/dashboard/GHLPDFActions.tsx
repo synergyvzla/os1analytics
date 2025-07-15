@@ -172,19 +172,19 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
       // Title centered at top
       firstPage.drawText('Reporte de daño a la propiedad', {
         x: 150,
-        y: 750,
+        y: 780,
         size: 24,
         color: rgb(0, 0, 0),
       });
 
       // Layout: Image on left, property details on right
       const imageX = 80;
-      const imageY = 480;
+      const imageY = 530;
       const imageWidth = 280;
       const imageHeight = 180;
       
       const detailsX = 400;
-      let detailsY = 660;
+      let detailsY = 710;
 
       // Add property image if available
       if (propertyImage) {
@@ -258,7 +258,7 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
       }
 
       // Explanatory text about wind analysis
-      const explanationY = 400;
+      const explanationY = 450;
       firstPage.drawText('Nuestros analistas identificaron ', {
         x: 80,
         y: explanationY,
@@ -291,7 +291,7 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
         { gust: property.top_gust_5, date: property.top_gust_5_date }
       ].filter(item => item.gust && item.date);
 
-      let listY = 340;
+      let listY = 390;
       gustData.forEach((item, index) => {
         if (item.gust && item.date) {
           const date = new Date(item.date);
@@ -312,7 +312,7 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
       });
 
       // Contact information at bottom
-      const contactY = 200;
+      const contactY = 250;
       firstPage.drawText('Si está interesado en programar una inspección detallada, por favor contáctenos al 0800-458-6893', {
         x: 80,
         y: contactY,
