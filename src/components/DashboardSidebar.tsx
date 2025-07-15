@@ -55,6 +55,11 @@ function DashboardSidebarContent() {
       path: "/crm",
     },
     {
+      text: "GHL",
+      icon: <Building className="h-5 w-5" />,
+      path: "/ghl",
+    },
+    {
       text: "Documentación",
       icon: <FileText className="h-5 w-5" />,
       path: "/docs",

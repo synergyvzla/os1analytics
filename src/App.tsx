@@ -9,6 +9,7 @@ import { Documentation } from "@/pages/Documentation"
 import { Profile } from "@/pages/Profile"
 import CRM from "@/pages/CRM"
 import Admin from "@/pages/Admin"
+import GHL from "@/pages/GHL"
 
 const queryClient = new QueryClient()
 
@@ -22,6 +23,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/docs" element={<Documentation />} />
           <Route path="/crm" element={<CRM />} />
+          <Route path="/ghl" element={<GHL />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
