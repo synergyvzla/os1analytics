@@ -169,11 +169,11 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
         }
       }
       
-      // Title centered at top
+      // Title centered at top with larger font
       firstPage.drawText('Reporte de daño a la propiedad', {
-        x: 150,
+        x: 200,
         y: 1100,
-        size: 24,
+        size: 32,
         color: rgb(0, 0, 0),
       });
 
@@ -196,73 +196,73 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
         });
       }
 
-      // Property details on the right side
+      // Property details on the right side with larger font
       if (property.address_formattedStreet) {
         firstPage.drawText(`Dirección: ${property.address_formattedStreet}`, {
           x: detailsX,
           y: detailsY,
-          size: 12,
+          size: 16,
           color: rgb(0, 0, 0),
         });
-        detailsY -= 25;
+        detailsY -= 30;
       }
 
       if (property.address_city) {
         firstPage.drawText(`Ciudad: ${property.address_city}`, {
           x: detailsX,
           y: detailsY,
-          size: 12,
+          size: 16,
           color: rgb(0, 0, 0),
         });
-        detailsY -= 25;
+        detailsY -= 30;
       }
 
       if (property.address_zip) {
         firstPage.drawText(`Código Postal: ${property.address_zip}`, {
           x: detailsX,
           y: detailsY,
-          size: 12,
+          size: 16,
           color: rgb(0, 0, 0),
         });
-        detailsY -= 25;
+        detailsY -= 30;
       }
 
       if (property.building_yearBuilt) {
         firstPage.drawText(`Año de Construcción: ${property.building_yearBuilt}`, {
           x: detailsX,
           y: detailsY,
-          size: 12,
+          size: 16,
           color: rgb(0, 0, 0),
         });
-        detailsY -= 25;
+        detailsY -= 30;
       }
 
       if (property.building_roofType) {
         firstPage.drawText(`Tipo de Techo: ${property.building_roofType}`, {
           x: detailsX,
           y: detailsY,
-          size: 12,
+          size: 16,
           color: rgb(0, 0, 0),
         });
-        detailsY -= 25;
+        detailsY -= 30;
       }
 
       if (property.owner_fullName) {
         firstPage.drawText(`Propietario (s): ${property.owner_fullName}`, {
           x: detailsX,
           y: detailsY,
-          size: 12,
+          size: 16,
           color: rgb(0, 0, 0),
         });
-        detailsY -= 35;
+        detailsY -= 40;
       }
 
-      // Explanatory text about wind analysis
+      // Explanatory text about wind analysis with larger font
       const explanationY = 770;
       firstPage.drawText('Nuestros analistas identificaron ', {
         x: 80,
         y: explanationY,
-        size: 12,
+        size: 16,
         color: rgb(0, 0, 0),
       });
 
@@ -270,19 +270,19 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
         firstPage.drawText(`${property.count_gusts} ráfagas de vientos mayores a 40 millas por hora en su zona, lo cual trae posibles`, {
           x: 248,
           y: explanationY,
-          size: 12,
+          size: 16,
           color: rgb(0.8, 0, 0), // Red color for emphasis
         });
       }
 
       firstPage.drawText('daños al techo de su propiedad, entre ellas las siguientes:', {
         x: 80,
-        y: explanationY - 20,
-        size: 12,
+        y: explanationY - 25,
+        size: 16,
         color: rgb(0, 0, 0),
       });
 
-      // Top 5 Wind Gusts as numbered list
+      // Top 5 Wind Gusts as numbered list with larger font
       const gustData = [
         { gust: property.top_gust_1, date: property.top_gust_1_date },
         { gust: property.top_gust_2, date: property.top_gust_2_date },
@@ -291,7 +291,7 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
         { gust: property.top_gust_5, date: property.top_gust_5_date }
       ].filter(item => item.gust && item.date);
 
-      let listY = 710;
+      let listY = 700;
       gustData.forEach((item, index) => {
         if (item.gust && item.date) {
           const date = new Date(item.date);
@@ -304,26 +304,26 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
           firstPage.drawText(`${index + 1}. ${Number(item.gust).toFixed(1)} mph (${formattedDate})`, {
             x: 120,
             y: listY,
-            size: 12,
+            size: 16,
             color: rgb(0, 0, 0),
           });
-          listY -= 25;
+          listY -= 30;
         }
       });
 
-      // Contact information at bottom
-      const contactY = 570;
+      // Contact information at bottom with larger font
+      const contactY = 550;
       firstPage.drawText('Si está interesado en programar una inspección detallada, por favor contáctenos al 0800-458-6893', {
         x: 80,
         y: contactY,
-        size: 12,
+        size: 16,
         color: rgb(0, 0, 0),
       });
 
       firstPage.drawText('o al email: customerservice@welldonemitigation.com', {
         x: 80,
-        y: contactY - 20,
-        size: 12,
+        y: contactY - 25,
+        size: 16,
         color: rgb(0, 0, 0),
       });
       
