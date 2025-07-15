@@ -168,21 +168,21 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
       }
       
       // Position data in the central white area (coordinates adjusted for better positioning)
-      let yPosition = 500; // Start from middle area, leaving space for image
-      const leftMargin = 80;
-      const rightColumn = 350;
+      let yPosition = 520; // Start higher for better layout
+      const leftMargin = 60;
+      const rightColumn = 320;
       
-      // Add property image if available
+      // Add property image if available - larger and better positioned
       if (propertyImage) {
-        const imageWidth = 200;
-        const imageHeight = 150;
+        const imageWidth = 280;
+        const imageHeight = 180;
         firstPage.drawImage(propertyImage, {
           x: leftMargin,
-          y: yPosition + 50,
+          y: yPosition - imageHeight,
           width: imageWidth,
           height: imageHeight,
         });
-        yPosition -= 30; // Adjust position after image
+        yPosition -= imageHeight + 20; // Adjust position after image
       }
       
       // Property Score (prominent and larger)
