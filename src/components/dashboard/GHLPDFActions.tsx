@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
-import jsPDF from 'jspdf';
+import { PDFDocument, rgb } from 'pdf-lib';
 import JSZip from 'jszip';
 
 interface Property {
@@ -43,66 +43,72 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
   const [progress, setProgress] = useState(0);
 
   const generatePropertyPDF = async (property: Property): Promise<Blob> => {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
     try {
-      // Try to load the Synergy template image
-      const templateImg = new Image();
-      templateImg.crossOrigin = 'anonymous';
+      // Load the PDF template
+      const templateResponse = await fetch('/Synergy Data Analytics.pdf');
+      if (!templateResponse.ok) {
+        throw new Error('Could not load PDF template');
+      }
       
-      await new Promise<void>((resolve, reject) => {
-        templateImg.onload = () => resolve();
-        templateImg.onerror = () => reject(new Error('Failed to load template'));
-        // Try the public folder path
-        templateImg.src = '/Synergy Data Analytics.png';
-      });
-
-      // Add template as background - full page
-      doc.addImage(templateImg, 'PNG', 0, 0, 210, 297);
-
-      // Overlay data in the central white area
-      let yPosition = 85; // Starting position in the white content area
+      const templateBytes = await templateResponse.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(templateBytes);
       
-      // Set text properties for data overlay
-      doc.setTextColor(51, 51, 51); // Dark gray text
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-
+      // Get the first page of the template
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+      
+      // Position data in the central white area
+      let yPosition = 600; // Start from top, PDF coordinates are bottom-up
+      
       // Property Score (prominent)
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(41, 128, 185); // Blue color
-      doc.text(`Score: ${property.combined_score || 'N/A'}`, 20, yPosition);
-      yPosition += 15;
+      if (property.combined_score) {
+        firstPage.drawText(`Score: ${property.combined_score}`, {
+          x: 50,
+          y: yPosition,
+          size: 20,
+          color: rgb(0.16, 0.5, 0.73), // Blue color
+        });
+        yPosition -= 40;
+      }
 
       // Address
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(51, 51, 51);
-      doc.text(`Dirección: ${property.address_formattedStreet || 'N/A'}`, 20, yPosition);
-      yPosition += 8;
+      if (property.address_formattedStreet) {
+        firstPage.drawText(`Dirección: ${property.address_formattedStreet}`, {
+          x: 50,
+          y: yPosition,
+          size: 12,
+          color: rgb(0.2, 0.2, 0.2),
+        });
+        yPosition -= 25;
+      }
 
       // Zip Code
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Código Postal: ${property.address_zip || 'N/A'}`, 20, yPosition);
-      yPosition += 8;
+      if (property.address_zip) {
+        firstPage.drawText(`Código Postal: ${property.address_zip}`, {
+          x: 50,
+          y: yPosition,
+          size: 12,
+          color: rgb(0.2, 0.2, 0.2),
+        });
+        yPosition -= 25;
+      }
 
       // Estimated Value
-      doc.text(`Valor Estimado: ${property.valuation_estimatedValue ? 
-        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
-          .format(property.valuation_estimatedValue) : 'N/A'}`, 20, yPosition);
-      yPosition += 12;
+      if (property.valuation_estimatedValue) {
+        const value = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD'
+        }).format(property.valuation_estimatedValue);
+        firstPage.drawText(`Valor Estimado: ${value}`, {
+          x: 50,
+          y: yPosition,
+          size: 12,
+          color: rgb(0.2, 0.2, 0.2),
+        });
+        yPosition -= 35;
+      }
 
       // Top 5 Wind Gusts
-      doc.setFont('helvetica', 'bold');
-      doc.text('Top 5 Ráfagas de Viento:', 20, yPosition);
-      yPosition += 8;
-
-      doc.setFont('helvetica', 'normal');
       const gustData = [
         { gust: property.top_gust_1, date: property.top_gust_1_date },
         { gust: property.top_gust_2, date: property.top_gust_2_date },
@@ -112,76 +118,69 @@ export const GHLPDFActions = ({ properties }: GHLPDFActionsProps) => {
       ].filter(item => item.gust && item.date);
 
       if (gustData.length > 0) {
+        firstPage.drawText('Top 5 Ráfagas de Viento:', {
+          x: 50,
+          y: yPosition,
+          size: 12,
+          color: rgb(0.2, 0.2, 0.2),
+        });
+        yPosition -= 20;
+
         const gustValues = gustData.map(item => item.gust).join(', ');
-        doc.text(`[${gustValues}]`, 20, yPosition);
-        yPosition += 8;
+        firstPage.drawText(`[${gustValues}]`, {
+          x: 50,
+          y: yPosition,
+          size: 11,
+          color: rgb(0.2, 0.2, 0.2),
+        });
+        yPosition -= 20;
 
-        // Gust Dates
-        doc.setFont('helvetica', 'bold');
-        doc.text('Fechas Ráfagas:', 20, yPosition);
-        yPosition += 8;
+        firstPage.drawText('Fechas Ráfagas:', {
+          x: 50,
+          y: yPosition,
+          size: 12,
+          color: rgb(0.2, 0.2, 0.2),
+        });
+        yPosition -= 15;
 
-        doc.setFont('helvetica', 'normal');
         const gustDates = gustData.map(item => 
           item.date ? new Date(item.date).toLocaleDateString('es-ES') : 'N/A'
         ).join(', ');
-        doc.text(`${gustDates}`, 20, yPosition);
-        yPosition += 8;
-      } else {
-        doc.text('No hay datos de ráfagas disponibles', 20, yPosition);
-        yPosition += 8;
+        firstPage.drawText(gustDates, {
+          x: 50,
+          y: yPosition,
+          size: 10,
+          color: rgb(0.2, 0.2, 0.2),
+        });
+        yPosition -= 25;
       }
-
-      yPosition += 8;
 
       // Google Maps Link
       if (property["Google Maps"]) {
-        doc.setFont('helvetica', 'bold');
-        doc.text('Google Maps:', 20, yPosition);
-        yPosition += 8;
+        firstPage.drawText('Google Maps:', {
+          x: 50,
+          y: yPosition,
+          size: 12,
+          color: rgb(0.2, 0.2, 0.2),
+        });
+        yPosition -= 15;
         
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(41, 128, 185); // Blue for link
-        doc.text(property["Google Maps"], 20, yPosition);
+        firstPage.drawText(property["Google Maps"], {
+          x: 50,
+          y: yPosition,
+          size: 10,
+          color: rgb(0.16, 0.5, 0.73), // Blue for link
+        });
       }
-
+      
+      // Save the PDF
+      const pdfBytes = await pdfDoc.save();
+      return new Blob([pdfBytes], { type: 'application/pdf' });
+      
     } catch (error) {
-      console.error('Error loading template image:', error);
-      
-      // Fallback: Create PDF without template
-      doc.setFillColor(41, 128, 185);
-      doc.rect(0, 0, 210, 40, 'F');
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(20);
-      doc.setFont('helvetica', 'bold');
-      doc.text('SYNERGY DATA ANALYTICS', 105, 25, { align: 'center' });
-      
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Reporte de Propiedad', 105, 55, { align: 'center' });
-
-      let yPos = 75;
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      
-      const data = [
-        `Score: ${property.combined_score || 'N/A'}`,
-        `Dirección: ${property.address_formattedStreet || 'N/A'}`,
-        `Código Postal: ${property.address_zip || 'N/A'}`,
-        `Valor Estimado: ${property.valuation_estimatedValue ? 
-          new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
-            .format(property.valuation_estimatedValue) : 'N/A'}`
-      ];
-
-      data.forEach(item => {
-        doc.text(item, 15, yPos);
-        yPos += 10;
-      });
+      console.error('Error generating PDF with template:', error);
+      throw new Error('Failed to generate PDF with template');
     }
-
-    return doc.output('blob');
   };
 
   const handleGeneratePDF = async () => {
