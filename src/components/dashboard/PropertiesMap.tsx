@@ -87,6 +87,7 @@ const formatCurrency = (value: number | null) => {
 
 export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
   // Fetch Google Maps API key securely
   const { data: mapsKey, isLoading: isLoadingKey } = useQuery({
@@ -99,7 +100,7 @@ export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) 
   });
 
   const markers = useMemo(() => {
-    if (!window.google) return [];
+    if (!isGoogleLoaded || !window.google) return [];
 
     const getMarkerIcon = (score: number | null) => {
       let color = '#ea384c'; // Default rojo para score 1
@@ -128,7 +129,7 @@ export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) 
       icon: getMarkerIcon(property.combined_score),
       property: property,
     })) || [];
-  }, [properties]);
+  }, [properties, isGoogleLoaded]);
 
   if (isLoadingKey) {
     return <div className="w-full h-[500px] flex items-center justify-center bg-gray-100 rounded-lg">
@@ -144,7 +145,10 @@ export const PropertiesMap = ({ properties, center, zoom }: PropertiesMapProps) 
 
   return (
     <div className="relative">
-      <LoadScript googleMapsApiKey={mapsKey}>
+      <LoadScript 
+        googleMapsApiKey={mapsKey}
+        onLoad={() => setIsGoogleLoaded(true)}
+      >
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={center}
